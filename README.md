@@ -1,9 +1,11 @@
 
 # grobotstxt 
 
-The repository contains a Go port of [Google's robots.txt parser and matcher C++ 
+The repository contains a native Go port of [Google's robots.txt parser and matcher C++ 
 library](https://github.com/google/robotstxt).
 
+- The code is not pretty :/
+- But the tests pass! :)
 
 ## License
 
