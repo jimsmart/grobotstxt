@@ -12,7 +12,7 @@ library](https://github.com/google/robotstxt).
 
 - Direct function-for-function conversion/port.
 - Preserves all behaviour of original library.
-- Includes 100% of original test suite.
+- All 100% of original test suite functionality.
 - The code is not pretty :/
 - But the tests all pass! :)
 
