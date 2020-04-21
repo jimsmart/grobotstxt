@@ -1,13 +1,39 @@
 package grobotstxt
 
+// Go port, grobotstxt: Copyright 2020 Jim Smart - original:
+// Copyright 1999 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// -----------------------------------------------------------------------------
+// File: robots.cc
+// -----------------------------------------------------------------------------
+//
+// Implements expired internet draft
+//   http://www.robotstxt.org/norobots-rfc.txt
+// with Google-specific optimizations detailed at
+//   https://developers.google.com/search/reference/robots_txt
+
+//
+
+// Converted 2020-04-21, from https://github.com/google/robotstxt/blob/master/robots.cc
+
 import (
 	"bytes"
 	"io"
 	"strings"
 	"unicode"
 )
-
-// See https://github.com/google/robotstxt/blob/master/robots.cc
 
 // AllowFrequentTypos to allow for typos such as DISALOW in robots.txt.
 var AllowFrequentTypos = true

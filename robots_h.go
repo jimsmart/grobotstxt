@@ -1,6 +1,42 @@
 package grobotstxt
 
-// See https://github.com/google/robotstxt/blob/master/robots.h
+// Go port, grobotstxt: Copyright 2020 Jim Smart - original:
+// Copyright 1999 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// -----------------------------------------------------------------------------
+// File: robots.h
+// -----------------------------------------------------------------------------
+//
+// This file implements the standard defined by the Robots Exclusion Protocol
+// (REP) internet draft (I-D).
+//   https://tools.ietf.org/html/draft-koster-rep
+//
+// Google doesn't follow the standard strictly, because there are a lot of
+// non-conforming robots.txt files out there, and we err on the side of
+// disallowing when this seems intended.
+//
+// An more user-friendly description of how Google handles robots.txt can be
+// found at:
+//   https://developers.google.com/search/reference/robots_txt
+//
+// This library provides a low-level parser for robots.txt (ParseRobotsTxt()),
+// and a matcher for URLs against a robots.txt (class RobotsMatcher).
+
+//
+
+// Converted 2020-04-21, from https://github.com/google/robotstxt/blob/master/robots.h
 
 // Handler for directives found in robots.txt. These callbacks are called by
 // ParseRobotsTxt() in the sequence they have been found in the file.

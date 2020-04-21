@@ -19,7 +19,7 @@ library](https://github.com/google/robotstxt).
 ## License
 
 Package grobotstxt is licensed under the terms of the
-Apache license. See LICENSE for more information.
+Apache license. See [LICENSE](LICENSE) for more information.
 
 ## Links
 
