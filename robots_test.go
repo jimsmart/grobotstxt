@@ -4,7 +4,6 @@ import (
 	"github.com/jimsmart/grobotstxt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	// . "github.com/jimsmart/grobotstxt"
 )
 
 var _ = Describe("Robots", func() {
@@ -636,6 +635,146 @@ var _ = Describe("Robots", func() {
 		}()
 	})
 
+	EXPECT_EQ := func(a, b interface{}) {
+		Expect(a).To(Equal(b))
+	}
+
+	// Different kinds of line endings are all supported: %x0D / %x0A / %x0D.0A
+	It("should ID_LinesNumbersAreCountedCorrectly", func() {
+		// Line :796
+		report := &robotsStatsReporter{}
+		const unixFile = "User-Agent: foo\n" +
+			"Allow: /some/path\n" +
+			"User-Agent: bar\n" +
+			"\n" +
+			"\n" +
+			"Disallow: /\n"
+		grobotstxt.ParseRobotsTxt(unixFile, report)
+		EXPECT_EQ(4, report.validDirectives)
+		EXPECT_EQ(6, report.lastLineSeen)
+
+		const dosFile = "User-Agent: foo\r\n" +
+			"Allow: /some/path\r\n" +
+			"User-Agent: bar\r\n" +
+			"\r\n" +
+			"\r\n" +
+			"Disallow: /\r\n"
+		grobotstxt.ParseRobotsTxt(dosFile, report)
+		EXPECT_EQ(4, report.validDirectives)
+		EXPECT_EQ(6, report.lastLineSeen)
+
+		const macFile = "User-Agent: foo\r" +
+			"Allow: /some/path\r" +
+			"User-Agent: bar\r" +
+			"\r" +
+			"\r" +
+			"Disallow: /\r"
+		grobotstxt.ParseRobotsTxt(macFile, report)
+		EXPECT_EQ(4, report.validDirectives)
+		EXPECT_EQ(6, report.lastLineSeen)
+
+		const noFinalNewline = "User-Agent: foo\n" +
+			"Allow: /some/path\n" +
+			"User-Agent: bar\n" +
+			"\n" +
+			"\n" +
+			"Disallow: /"
+		grobotstxt.ParseRobotsTxt(noFinalNewline, report)
+		EXPECT_EQ(4, report.validDirectives)
+		EXPECT_EQ(6, report.lastLineSeen)
+
+		const mixedFile = "User-Agent: foo\n" +
+			"Allow: /some/path\r\n" +
+			"User-Agent: bar\n" +
+			"\r\n" +
+			"\n" +
+			"Disallow: /"
+		grobotstxt.ParseRobotsTxt(mixedFile, report)
+		EXPECT_EQ(4, report.validDirectives)
+		EXPECT_EQ(6, report.lastLineSeen)
+	})
+
+	// BOM characters are unparseable and thus skipped. The rules following the line
+	// are used.
+	It("should ID_UTF8ByteOrderMarkIsSkipped", func() {
+		// Line :856
+		report := &robotsStatsReporter{}
+		const utf8FileFullBOM = "\xEF\xBB\xBF" +
+			"User-Agent: foo\n" +
+			"Allow: /AnyValue\n"
+		grobotstxt.ParseRobotsTxt(utf8FileFullBOM, report)
+		EXPECT_EQ(2, report.validDirectives)
+		EXPECT_EQ(0, report.unknownDirectives)
+
+		// We allow as well partial ByteOrderMarks.
+		const utf8FilePartial2BOM = "\xEF\xBB" +
+			"User-Agent: foo\n" +
+			"Allow: /AnyValue\n"
+		grobotstxt.ParseRobotsTxt(utf8FilePartial2BOM, report)
+		EXPECT_EQ(2, report.validDirectives)
+		EXPECT_EQ(0, report.unknownDirectives)
+
+		const utf8FilePartial1BOM = "\xEF" +
+			"User-Agent: foo\n" +
+			"Allow: /AnyValue\n"
+		grobotstxt.ParseRobotsTxt(utf8FilePartial1BOM, report)
+		EXPECT_EQ(2, report.validDirectives)
+		EXPECT_EQ(0, report.unknownDirectives)
+
+		// If the BOM is not the right sequence, the first line looks like garbage
+		// that is skipped (we essentially see "\x11\xBFUser-Agent").
+		const utf8FileBrokenBOM = "\xEF\x11\xBF" +
+			"User-Agent: foo\n" +
+			"Allow: /AnyValue\n"
+		grobotstxt.ParseRobotsTxt(utf8FileBrokenBOM, report)
+		EXPECT_EQ(1, report.validDirectives)
+		EXPECT_EQ(1, report.unknownDirectives) // We get one broken line.
+
+		// Some other messed up file: BOMs only valid in the beginning of the file.
+		const utf8BOMSomewhereInMiddleOfFile = "User-Agent: foo\n" +
+			"\xEF\xBB\xBF" +
+			"Allow: /AnyValue\n"
+		grobotstxt.ParseRobotsTxt(utf8BOMSomewhereInMiddleOfFile, report)
+		EXPECT_EQ(1, report.validDirectives)
+		EXPECT_EQ(1, report.unknownDirectives)
+	})
+
+	// Google specific: the I-D allows any line that crawlers might need, such as
+	// sitemaps, which Google supports.
+	// See REP I-D section "Other records".
+	// https://tools.ietf.org/html/draft-koster-rep#section-2.2.4
+	It("should ID_NonStandardLineExample_Sitemap", func() {
+		// Line :907
+		report := &robotsStatsReporter{}
+		func() {
+			const sitemap_loc = "http://foo.bar/sitemap.xml"
+			robotstxt :=
+				"User-Agent: foo\n" +
+					"Allow: /some/path\n" +
+					"User-Agent: bar\n" +
+					"\n" +
+					"\n"
+			robotstxt += "Sitemap: " + sitemap_loc + "\n"
+
+			grobotstxt.ParseRobotsTxt(robotstxt, report)
+			EXPECT_EQ(sitemap_loc, report.sitemap)
+		}()
+		// A sitemap line may appear anywhere in the file.
+		func() {
+			robotstxt := ""
+			const sitemap_loc = "http://foo.bar/sitemap.xml"
+			const robotstxt_temp = "User-Agent: foo\n" +
+				"Allow: /some/path\n" +
+				"User-Agent: bar\n" +
+				"\n" +
+				"\n"
+			robotstxt += "Sitemap: " + sitemap_loc + "\n" + robotstxt_temp
+
+			grobotstxt.ParseRobotsTxt(robotstxt, report)
+			EXPECT_EQ(sitemap_loc, report.sitemap)
+		}()
+	})
+
 	//
 
 	// Line :948
@@ -680,3 +819,50 @@ var _ = Describe("Robots", func() {
 	})
 
 })
+
+type robotsStatsReporter struct {
+	// Line :739
+	lastLineSeen      int
+	validDirectives   int
+	unknownDirectives int
+	sitemap           string
+}
+
+func (r *robotsStatsReporter) HandleRobotsStart() {
+	r.lastLineSeen = 0
+	r.validDirectives = 0
+	r.unknownDirectives = 0
+	r.sitemap = ""
+}
+
+func (r *robotsStatsReporter) HandleRobotsEnd() {}
+
+func (r *robotsStatsReporter) HandleUserAgent(lineNum int, value string) {
+	r.digest(lineNum)
+}
+
+func (r *robotsStatsReporter) HandleAllow(lineNum int, value string) {
+	r.digest(lineNum)
+}
+
+func (r *robotsStatsReporter) HandleDisallow(lineNum int, value string) {
+	r.digest(lineNum)
+}
+
+func (r *robotsStatsReporter) HandleSitemap(lineNum int, value string) {
+	r.digest(lineNum)
+	r.sitemap += value
+}
+
+func (r *robotsStatsReporter) HandleUnknownAction(lineNum int, action, value string) {
+	r.lastLineSeen = lineNum
+	r.unknownDirectives++
+}
+
+func (r *robotsStatsReporter) digest(lineNum int) {
+	if lineNum < r.lastLineSeen {
+		panic("Bad lineNum")
+	}
+	r.lastLineSeen = lineNum
+	r.validDirectives++
+}

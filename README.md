@@ -10,8 +10,11 @@
 grobotstxt is a native Go port of [Google's robots.txt parser and matcher C++ 
 library](https://github.com/google/robotstxt).
 
+- Direct function for function conversion/port.
+- Preserves all behaviour of original library.
+- Includes 100% of original library's test suite.
 - The code is not pretty :/
-- But the tests pass! :)
+- But the tests all pass! :)
 
 ## License
 
