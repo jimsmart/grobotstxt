@@ -16,6 +16,16 @@ library](https://github.com/google/robotstxt).
 - The code is not pretty :/
 - But the tests all pass! :)
 
+## Testing
+
+To run the tests execute `go test` inside the project folder.
+
+For a full coverage report, try:
+
+```bash
+$ go test -coverprofile=coverage.out && go tool cover -html=coverage.out
+```
+
 ## License
 
 Package grobotstxt is licensed under the terms of the

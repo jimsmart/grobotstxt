@@ -537,13 +537,6 @@ func (p *RobotsTxtParser) Parse() {
 	p.handler.HandleRobotsEnd()
 }
 
-func min(i, j int) int {
-	if i < j {
-		return i
-	}
-	return j
-}
-
 //
 
 var _ RobotsMatchStrategy = LongestMatchRobotsMatchStrategy{}
@@ -662,9 +655,9 @@ func (m *RobotsMatcher) disallowIgnoreGlobal() bool {
 func (m *RobotsMatcher) matchingLine() int {
 	// Line :530
 	if m.everSeenSpecificAgent {
-		return Match_HigherPriorityMatch(m.disallowMatch.specific, m.allowMatch.specific).line
+		return HigherPriorityMatch(m.disallowMatch.specific, m.allowMatch.specific).line
 	}
-	return Match_HigherPriorityMatch(m.disallowMatch.global, m.allowMatch.global).line
+	return HigherPriorityMatch(m.disallowMatch.global, m.allowMatch.global).line
 }
 
 func (m *RobotsMatcher) HandleRobotsStart() {

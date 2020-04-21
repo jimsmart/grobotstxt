@@ -109,6 +109,12 @@ type Match struct {
 	line     int
 }
 
+func NewMatch() *Match {
+	return &Match{
+		priority: NoMatchPriority,
+	}
+}
+
 func (m *Match) Set(priority, line int) {
 	m.priority = priority
 	m.line = line
@@ -118,11 +124,11 @@ func (m *Match) Clear() {
 	m.Set(NoMatchPriority, 0)
 }
 
-func (m *Match) HigherPriorityMatch(a, b *Match) *Match {
-	return Match_HigherPriorityMatch(a, b)
-}
+// func (m *Match) HigherPriorityMatch(a, b *Match) *Match {
+// 	return Match_HigherPriorityMatch(a, b)
+// }
 
-func Match_HigherPriorityMatch(a, b *Match) *Match {
+func HigherPriorityMatch(a, b *Match) *Match {
 	if a.priority > b.priority {
 		return a
 	}
@@ -139,8 +145,8 @@ type MatchHierarchy struct {
 
 func NewMatchHierarchy() *MatchHierarchy {
 	return &MatchHierarchy{
-		global:   &Match{},
-		specific: &Match{},
+		global:   NewMatch(),
+		specific: NewMatch(),
 	}
 }
 
