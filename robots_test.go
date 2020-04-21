@@ -1,6 +1,4 @@
-package grobotstxt_test
-
-// Go port, grobotstxt: Copyright 2020 Jim Smart - original:
+// Copyright 2020 Jim Smart
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +20,8 @@ package grobotstxt_test
 //
 
 // Converted 2020-04-21, from https://github.com/google/robotstxt/blob/master/robots_test.cc
+
+package grobotstxt_test
 
 import (
 	"github.com/jimsmart/grobotstxt"

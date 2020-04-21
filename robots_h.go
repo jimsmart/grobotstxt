@@ -1,6 +1,4 @@
-package grobotstxt
-
-// Go port, grobotstxt: Copyright 2020 Jim Smart - original:
+// Copyright 2020 Jim Smart
 // Copyright 1999 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +35,8 @@ package grobotstxt
 //
 
 // Converted 2020-04-21, from https://github.com/google/robotstxt/blob/master/robots.h
+
+package grobotstxt
 
 // Handler for directives found in robots.txt. These callbacks are called by
 // ParseRobotsTxt() in the sequence they have been found in the file.
