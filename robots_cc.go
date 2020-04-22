@@ -30,7 +30,6 @@ package grobotstxt
 
 import (
 	"bytes"
-	"io"
 	"strings"
 	"unicode"
 )
@@ -481,58 +480,54 @@ func (p *Parser) Parse() {
 	// If so, we can ignore the chars on a line past that.
 	const maxLineLen = 2083 * 8
 
-	var err error
 	var b byte
 
 	p.handler.HandleRobotsStart()
 
-	r := strings.NewReader(p.robotsBody)
+	length := len(p.robotsBody)
+	cur := 0
 	// Skip BOM if present - including partial BOMs.
 	for i := 0; i < len(utfBOM); i++ {
-		b, err = r.ReadByte()
-		if err == io.EOF {
+		if cur == length {
 			break
 		}
-		if err != nil {
-			panic(err) // TODO Cleanup this panic.
-		}
+		b = p.robotsBody[cur]
 		if b != utfBOM[i] {
-			r.UnreadByte()
 			break
 		}
+		cur++
 	}
 
 	lineNum := 0
 	lastWasCarriageReturn := false
-
-	// TODO I believe this can all be done without a buffer, by moving a slice over p.robotsBody.
-
-	var lineBuffer []byte
-	// lineBuffer := make([]byte, 0, maxLineLen)
+	start := cur
+	end := cur
 	for {
-		b, err = r.ReadByte()
-		if err != nil {
+		if cur == length {
 			break
 		}
+		b = p.robotsBody[cur]
+		cur++
 		if b != 0x0A && b != 0x0D { // Non-line-ending char case.
 			// Put in next spot on current line, as long as there's room.
-			if len(lineBuffer) < maxLineLen-1 {
-				lineBuffer = append(lineBuffer, b)
+			if end-start < maxLineLen-1 {
+				end++
 			}
 		} else { // Line-ending character char case.
 			// Only emit an empty line if this was not due to the second character
 			// of the DOS line-ending \r\n .
-			isCRLFContinuation := len(lineBuffer) == 0 && lastWasCarriageReturn && b == 0x0A
+			isCRLFContinuation := end-start == 0 && lastWasCarriageReturn && b == 0x0A
 			if !isCRLFContinuation {
 				lineNum++
-				p.parseAndEmitLine(lineNum, string(lineBuffer))
+				p.parseAndEmitLine(lineNum, p.robotsBody[start:end])
 			}
-			lineBuffer = lineBuffer[:0]
+			start = cur
+			end = cur
 			lastWasCarriageReturn = b == 0x0D
 		}
 	}
 	lineNum++
-	p.parseAndEmitLine(lineNum, string(lineBuffer))
+	p.parseAndEmitLine(lineNum, p.robotsBody[start:end])
 	p.handler.HandleRobotsEnd()
 }
 
