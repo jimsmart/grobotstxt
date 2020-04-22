@@ -595,7 +595,8 @@ func NewRobotsMatcher() *RobotsMatcher {
 	return &m
 }
 
-// init initialises the userAgents and path for this RobotsMatcher.
+// init Initialises next path and user-agents to check. Path must contain only the
+// path, params, and query (if any) of the url and must start with a '/'.
 func (m *RobotsMatcher) init(userAgents []string, path string) {
 	// Line :478
 	m.path = path
