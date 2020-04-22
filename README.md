@@ -31,7 +31,7 @@ Quoting the README from Google's robots.txt parser and matcher repo:
 >
 > The library is slightly modified (i.e. some internal headers and equivalent symbols) production code used by Googlebot, Google's crawler, to determine which URLs it may access based on rules provided by webmasters in robots.txt files. The library is released open-source to help developers build tools that better reflect Google's robots.txt parsing and matching.
 
-This package aims to be a faithful conversion, from C++ to Go, of the released Google robots.txt parser and matcher.
+This package aims to be a faithful conversion, from C++ to Go, of Google's robots.txt parser and matcher.
 
 ## Quickstart
 
