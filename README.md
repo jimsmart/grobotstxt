@@ -17,7 +17,7 @@ library](https://github.com/google/robotstxt).
 
 As per Google's original library, we include a small standalone binary, 
 for webmasters, that allows testing a single URL and user-agent against 
-a robots.txt. Ours is called `icanhasrobot`.
+a robots.txt. Ours is called `icanhasrobot`, and has identical inputs and outputs.
 
 ## Installation
 
