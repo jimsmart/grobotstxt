@@ -124,10 +124,10 @@ in this format, the matching will be done according to the REP specification.
 
 ## License
 
-Package grobotstxt is licensed under the terms of the
-Apache license. See [LICENSE](LICENSE) for more information.
+Like the original library, package grobotstxt is licensed under the terms of the
+Apache License, Version 2.0. See [LICENSE](LICENSE) for more information.
 
 ## Links
 
-*   Original project
+*   Original project:
     [Google robots.txt parser and matcher library](https://github.com/google/robotstxt)

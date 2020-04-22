@@ -9,6 +9,7 @@ func (f *sitemapExtractor) Sitemaps(robotsBody string) []string {
 	return f.sitemaps
 }
 
+// Sitemaps extracts all "Sitemap:" values from the given robots.txt content.
 func Sitemaps(robotsBody string) []string {
 	return (&sitemapExtractor{}).Sitemaps(robotsBody)
 }
