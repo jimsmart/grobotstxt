@@ -34,7 +34,7 @@ var _ = Describe("Robots", func() {
 	// Line :30
 	IsUserAgentAllowed := func(robotstxt, userAgent, url string) bool {
 		matcher := grobotstxt.NewRobotsMatcher()
-		return matcher.OneAgentAllowedByRobots(robotstxt, userAgent, url)
+		return matcher.AgentAllowed(robotstxt, userAgent, url)
 	}
 
 	EXPECT_TRUE := func(b bool) {
@@ -672,7 +672,7 @@ var _ = Describe("Robots", func() {
 			"\n" +
 			"\n" +
 			"Disallow: /\n"
-		grobotstxt.ParseRobotsTxt(unixFile, report)
+		grobotstxt.Parse(unixFile, report)
 		EXPECT_EQ(4, report.validDirectives)
 		EXPECT_EQ(6, report.lastLineSeen)
 
@@ -682,7 +682,7 @@ var _ = Describe("Robots", func() {
 			"\r\n" +
 			"\r\n" +
 			"Disallow: /\r\n"
-		grobotstxt.ParseRobotsTxt(dosFile, report)
+		grobotstxt.Parse(dosFile, report)
 		EXPECT_EQ(4, report.validDirectives)
 		EXPECT_EQ(6, report.lastLineSeen)
 
@@ -692,7 +692,7 @@ var _ = Describe("Robots", func() {
 			"\r" +
 			"\r" +
 			"Disallow: /\r"
-		grobotstxt.ParseRobotsTxt(macFile, report)
+		grobotstxt.Parse(macFile, report)
 		EXPECT_EQ(4, report.validDirectives)
 		EXPECT_EQ(6, report.lastLineSeen)
 
@@ -702,7 +702,7 @@ var _ = Describe("Robots", func() {
 			"\n" +
 			"\n" +
 			"Disallow: /"
-		grobotstxt.ParseRobotsTxt(noFinalNewline, report)
+		grobotstxt.Parse(noFinalNewline, report)
 		EXPECT_EQ(4, report.validDirectives)
 		EXPECT_EQ(6, report.lastLineSeen)
 
@@ -712,7 +712,7 @@ var _ = Describe("Robots", func() {
 			"\r\n" +
 			"\n" +
 			"Disallow: /"
-		grobotstxt.ParseRobotsTxt(mixedFile, report)
+		grobotstxt.Parse(mixedFile, report)
 		EXPECT_EQ(4, report.validDirectives)
 		EXPECT_EQ(6, report.lastLineSeen)
 	})
@@ -725,7 +725,7 @@ var _ = Describe("Robots", func() {
 		const utf8FileFullBOM = "\xEF\xBB\xBF" +
 			"User-Agent: foo\n" +
 			"Allow: /AnyValue\n"
-		grobotstxt.ParseRobotsTxt(utf8FileFullBOM, report)
+		grobotstxt.Parse(utf8FileFullBOM, report)
 		EXPECT_EQ(2, report.validDirectives)
 		EXPECT_EQ(0, report.unknownDirectives)
 
@@ -733,14 +733,14 @@ var _ = Describe("Robots", func() {
 		const utf8FilePartial2BOM = "\xEF\xBB" +
 			"User-Agent: foo\n" +
 			"Allow: /AnyValue\n"
-		grobotstxt.ParseRobotsTxt(utf8FilePartial2BOM, report)
+		grobotstxt.Parse(utf8FilePartial2BOM, report)
 		EXPECT_EQ(2, report.validDirectives)
 		EXPECT_EQ(0, report.unknownDirectives)
 
 		const utf8FilePartial1BOM = "\xEF" +
 			"User-Agent: foo\n" +
 			"Allow: /AnyValue\n"
-		grobotstxt.ParseRobotsTxt(utf8FilePartial1BOM, report)
+		grobotstxt.Parse(utf8FilePartial1BOM, report)
 		EXPECT_EQ(2, report.validDirectives)
 		EXPECT_EQ(0, report.unknownDirectives)
 
@@ -749,7 +749,7 @@ var _ = Describe("Robots", func() {
 		const utf8FileBrokenBOM = "\xEF\x11\xBF" +
 			"User-Agent: foo\n" +
 			"Allow: /AnyValue\n"
-		grobotstxt.ParseRobotsTxt(utf8FileBrokenBOM, report)
+		grobotstxt.Parse(utf8FileBrokenBOM, report)
 		EXPECT_EQ(1, report.validDirectives)
 		EXPECT_EQ(1, report.unknownDirectives) // We get one broken line.
 
@@ -757,7 +757,7 @@ var _ = Describe("Robots", func() {
 		const utf8BOMSomewhereInMiddleOfFile = "User-Agent: foo\n" +
 			"\xEF\xBB\xBF" +
 			"Allow: /AnyValue\n"
-		grobotstxt.ParseRobotsTxt(utf8BOMSomewhereInMiddleOfFile, report)
+		grobotstxt.Parse(utf8BOMSomewhereInMiddleOfFile, report)
 		EXPECT_EQ(1, report.validDirectives)
 		EXPECT_EQ(1, report.unknownDirectives)
 	})
@@ -779,7 +779,7 @@ var _ = Describe("Robots", func() {
 					"\n"
 			robotstxt += "Sitemap: " + sitemap_loc + "\n"
 
-			grobotstxt.ParseRobotsTxt(robotstxt, report)
+			grobotstxt.Parse(robotstxt, report)
 			EXPECT_EQ(sitemap_loc, report.sitemap)
 		}()
 		// A sitemap line may appear anywhere in the file.
@@ -793,53 +793,53 @@ var _ = Describe("Robots", func() {
 				"\n"
 			robotstxt += "Sitemap: " + sitemap_loc + "\n" + robotstxt_temp
 
-			grobotstxt.ParseRobotsTxt(robotstxt, report)
+			grobotstxt.Parse(robotstxt, report)
 			EXPECT_EQ(sitemap_loc, report.sitemap)
 		}()
 	})
 
 	//
 
-	// Line :948
-	TestPath := func(uri, expected string) {
-		x := grobotstxt.GetPathParamsQuery(uri)
-		Expect(x).To(Equal(expected))
-	}
+	// // Line :948
+	// TestPath := func(uri, expected string) {
+	// 	x := grobotstxt.GetPathParamsQuery(uri)
+	// 	Expect(x).To(Equal(expected))
+	// }
 
-	TestEscape := func(uri, expected string) {
-		x := grobotstxt.MaybeEscapePattern(uri)
-		Expect(x).To(Equal(expected))
-	}
+	// TestEscape := func(uri, expected string) {
+	// 	x := grobotstxt.EscapePattern(uri)
+	// 	Expect(x).To(Equal(expected))
+	// }
 
-	It("should TestGetPathParamsQuery", func() {
-		// Only testing URLs that are already correctly escaped here.
-		TestPath("", "/")
-		TestPath("http://www.example.com", "/")
-		TestPath("http://www.example.com/", "/")
-		TestPath("http://www.example.com/a", "/a")
-		TestPath("http://www.example.com/a/", "/a/")
-		TestPath("http://www.example.com/a/b?c=http://d.e/", "/a/b?c=http://d.e/")
-		TestPath("http://www.example.com/a/b?c=d&e=f#fragment", "/a/b?c=d&e=f")
-		TestPath("example.com", "/")
-		TestPath("example.com/", "/")
-		TestPath("example.com/a", "/a")
-		TestPath("example.com/a/", "/a/")
-		TestPath("example.com/a/b?c=d&e=f#fragment", "/a/b?c=d&e=f")
-		TestPath("a", "/")
-		TestPath("a/", "/")
-		TestPath("/a", "/a")
-		TestPath("a/b", "/b")
-		TestPath("example.com?a", "/?a")
-		TestPath("example.com/a;b#c", "/a;b")
-		TestPath("//a/b/c", "/b/c")
-	})
+	// It("should TestGetPathParamsQuery", func() {
+	// 	// Only testing URLs that are already correctly escaped here.
+	// 	TestPath("", "/")
+	// 	TestPath("http://www.example.com", "/")
+	// 	TestPath("http://www.example.com/", "/")
+	// 	TestPath("http://www.example.com/a", "/a")
+	// 	TestPath("http://www.example.com/a/", "/a/")
+	// 	TestPath("http://www.example.com/a/b?c=http://d.e/", "/a/b?c=http://d.e/")
+	// 	TestPath("http://www.example.com/a/b?c=d&e=f#fragment", "/a/b?c=d&e=f")
+	// 	TestPath("example.com", "/")
+	// 	TestPath("example.com/", "/")
+	// 	TestPath("example.com/a", "/a")
+	// 	TestPath("example.com/a/", "/a/")
+	// 	TestPath("example.com/a/b?c=d&e=f#fragment", "/a/b?c=d&e=f")
+	// 	TestPath("a", "/")
+	// 	TestPath("a/", "/")
+	// 	TestPath("/a", "/a")
+	// 	TestPath("a/b", "/b")
+	// 	TestPath("example.com?a", "/?a")
+	// 	TestPath("example.com/a;b#c", "/a;b")
+	// 	TestPath("//a/b/c", "/b/c")
+	// })
 
-	It("should TestMaybeEscapePattern", func() {
-		TestEscape("http://www.example.com", "http://www.example.com")
-		TestEscape("/a/b/c", "/a/b/c")
-		TestEscape("á", "%C3%A1")
-		TestEscape("%aa", "%AA")
-	})
+	// It("should TestMaybeEscapePattern", func() {
+	// 	TestEscape("http://www.example.com", "http://www.example.com")
+	// 	TestEscape("/a/b/c", "/a/b/c")
+	// 	TestEscape("á", "%C3%A1")
+	// 	TestEscape("%aa", "%AA")
+	// })
 
 })
 

@@ -35,36 +35,36 @@ import (
 	"unicode"
 )
 
-// AllowFrequentTypos to allow for typos such as DISALOW in robots.txt.
+// AllowFrequentTypos enables the parsing of common typos in robots.txt, such as DISALOW.
 var AllowFrequentTypos = true
 
-// A RobotsMatchStrategy defines a strategy for matching individual lines in a
-// robots.txt file. Each Match* method should return a match priority, which is
+// A MatchStrategy defines a strategy for matching individual lines in a
+// robots.txt file.
+//
+// Each Match* method should return a match priority, which is
 // interpreted as:
 //
-// match priority < 0:
-//    No match.
+//  match priority < 0:  No match.
 //
-// match priority == 0:
-//    Match, but treat it as if matched an empty pattern.
+//  match priority == 0: Match, but treat it as if matched an empty pattern.
 //
-// match priority > 0:
-//    Match.
-type RobotsMatchStrategy interface {
+//  match priority > 0:  Match.
+//
+type MatchStrategy interface {
 	MatchAllow(path, pattern string) int
 	MatchDisallow(path, pattern string) int
-	Matches(path, pattern string) bool
 }
 
-// Implements robots.txt pattern matching.
+// Matches implements robots.txt pattern matching.
 //
 // Returns true if URI path matches the specified pattern. Pattern is anchored
 // at the beginning of path. '$' is special only at the end of pattern.
 //
-// Since 'path' and 'pattern' are both externally determined (by the webmaster),
+// Since both path and pattern are externally determined (by the webmaster),
 // we make sure to have acceptable worst-case performance.
-func RobotsMatchStrategy_Matches(path, pattern string) bool {
+func Matches(path, pattern string) bool {
 	// Line :69
+	// This method originally belonged to abstract base class RobotsMatchStrategy.
 	pathlen := len(path)
 	pos := make([]int, pathlen+1)
 	var numpos int
@@ -107,12 +107,10 @@ func RobotsMatchStrategy_Matches(path, pattern string) bool {
 	return true
 }
 
-// GetPathParamsQuery is not in anonymous namespace to allow testing.
-//
-// Extracts path (with params) and query part from URL. Removes scheme,
-// authority, and fragment. Result always starts with "/".
-// Returns "/" if the url doesn't have a path or is not valid.
-func GetPathParamsQuery(uri string) string {
+// getPathParamsQuery extracts path (with params) and query part from the given URI.
+// Removes scheme, authority, and fragment. Result always starts with "/".
+// Returns "/" if the URI doesn't have a path or is not valid.
+func getPathParamsQuery(uri string) string {
 	// Line :117
 
 	// path := ""
@@ -178,36 +176,37 @@ func findByte(s string, b byte, i int) int {
 	return j
 }
 
-// MaybeEscapePattern is not in anonymous namespace to allow testing.
+// escapePattern is used to canonicalize the allowed/disallowed path patterns.
+// UTF-8 multibyte sequences (and other out-of-range ASCII values) are percent-encoded,
+// and any existing percent-encoded values have their hex values normalised to uppercase.
 //
-// Canonicalize the allowed/disallowed paths. For example:
+// For example:
 //     /SanJoséSellers ==> /Sanjos%C3%A9Sellers
 //     %aa ==> %AA
-// When the function returns, (*dst) either points to src, or is newly
-// allocated.
-// Returns true if dst was newly allocated.
-func MaybeEscapePattern(src string) string {
+// If the given path pattern is already adequately escaped,
+// the original string is returned unchanged.
+func escapePattern(path string) string {
 	// Line :156
 
 	needCapitalise := false
 	numToEscape := 0
 
 	s := func(i int) byte {
-		if i < len(src) {
-			return src[i]
+		if i < len(path) {
+			return path[i]
 		}
 		return 0
 	}
 
 	// First, scan the buffer to see if changes are needed. Most don't.
-	for i := 0; i < len(src); i++ {
+	for i := 0; i < len(path); i++ {
 		// (a) % escape sequence.
-		if src[i] == '%' &&
+		if path[i] == '%' &&
 			isHexDigit(s(i+1)) && isHexDigit(s(i+2)) {
 			if isLower(s(i+1)) || isLower(s(i+2)) {
 				needCapitalise = true
 			}
-		} else if src[i] >= 0x80 {
+		} else if path[i] >= 0x80 {
 			// (b) needs escaping.
 			numToEscape++
 		}
@@ -215,32 +214,32 @@ func MaybeEscapePattern(src string) string {
 	}
 	// Return if no changes needed.
 	if numToEscape == 0 && !needCapitalise {
-		return src
+		return path
 	}
 
-	by := make([]byte, 0, numToEscape*2+len(src))
-	dst := bytes.NewBuffer(by)
-	for i := 0; i < len(src); i++ {
+	by := make([]byte, 0, numToEscape*2+len(path))
+	out := bytes.NewBuffer(by)
+	for i := 0; i < len(path); i++ {
 		// (a) Normalize %-escaped sequence (eg. %2f -> %2F).
-		if src[i] == '%' &&
+		if path[i] == '%' &&
 			isHexDigit(s(i+1)) && isHexDigit(s(i+2)) {
-			dst.WriteByte('%')
+			out.WriteByte('%')
 			i++
-			dst.WriteByte(toUpper(src[i]))
+			out.WriteByte(toUpper(path[i]))
 			i++
-			dst.WriteByte(toUpper(src[i]))
-		} else if src[i] >= 0x80 {
+			out.WriteByte(toUpper(path[i]))
+		} else if path[i] >= 0x80 {
 			// (b) %-escape octets whose highest bit is set. These are outside the
 			// ASCII range.
-			dst.WriteByte('%')
-			dst.WriteByte(hexDigits[(src[i]>>4)&0xf])
-			dst.WriteByte(hexDigits[src[i]&0xf])
+			out.WriteByte('%')
+			out.WriteByte(hexDigits[(path[i]>>4)&0xf])
+			out.WriteByte(hexDigits[path[i]&0xf])
 		} else {
 			// (c) Normal character, no modification needed.
-			dst.WriteByte(src[i])
+			out.WriteByte(path[i])
 		}
 	}
-	return string(dst.Bytes())
+	return string(out.Bytes())
 }
 
 const hexDigits = "0123456789ABCDEF"
@@ -262,23 +261,19 @@ func toUpper(c byte) byte {
 
 //
 
-type KeyType int
+// keyType denotes the type of key in a robots.txt key/value pair.
+type keyType int
 
 const (
-	// Unrecognized field; Zero value so that additions to the
-	// enumeration below do not change the serialization,
-	// and to provide useful default.
-	Unknown KeyType = iota // Note in the C++ this is 128, not 0.
+	unknownKey keyType = iota // unknownKey for unrecognised keys.
 
 	// Generic highlevel fields.
+	userAgentKey // userAgentKey for "User-Agent:" keys.
+	sitemapKey   // sitemapKey for "Sitemap:" keys.
 
-	UserAgent
-	Sitemap
-
-	// Fields within a user-agent.
-
-	Allow
-	Disallow
+	// Fields within a user-agent group/section.
+	allowKey    // allowKey for "Allow:" keys.
+	disallowKey // disallowKey for "Disallow:" keys.
 )
 
 //
@@ -288,57 +283,57 @@ const (
 // and represent them as an enumeration which allows for faster processing
 // afterwards.
 // For unparsable keys, the original string representation is kept.
-type ParsedRobotsKey struct {
-	typ     KeyType
-	keyText string
+
+type parsedKey struct {
+	typ keyType
+	key string
 }
 
-// Parse given key text. Does not copy the text, so the text_key must stay
-// valid for the object's life-time or the next Parse() call.
-func (k *ParsedRobotsKey) Parse(key string) {
+// parseKey parses given key text, returning a suitably initialised parsedKey.
+func parseKey(key string) parsedKey {
+
 	// Line :659
-	k.keyText = ""
-	if k.KeyIsUserAgent(key) {
-		k.typ = UserAgent
-	} else if k.KeyIsAllow(key) {
-		k.typ = Allow
-	} else if k.KeyIsDisallow(key) {
-		k.typ = Disallow
-	} else if k.KeyIsSitemap(key) {
-		k.typ = Sitemap
+	k := parsedKey{}
+	if keyIsUserAgent(key) {
+		k.typ = userAgentKey
+	} else if keyIsAllow(key) {
+		k.typ = allowKey
+	} else if keyIsDisallow(key) {
+		k.typ = disallowKey
+	} else if keyIsSitemap(key) {
+		k.typ = sitemapKey
 	} else {
-		k.typ = Unknown
-		k.keyText = key
+		k.typ = unknownKey
+		k.key = key
 	}
+	return k
 }
 
-// Returns the type of key.
-func (k *ParsedRobotsKey) Type() KeyType {
+// Type returns the type of key.
+func (k parsedKey) Type() keyType {
 	return k.typ
 }
 
-// If this is an unknown key, get the text.
-func (k *ParsedRobotsKey) GetUnknownText() string {
+// UnknownKey returns the text of the key for Unknown key types.
+// For all other key types it returns an empty string.
+func (k parsedKey) UnknownKey() string {
 	// Line :675
-	if !(k.typ == Unknown && k.keyText != "") {
-		panic("bad call to GetUnknownText") // TODO Remove this panic.
-	}
-	return k.keyText
+	return k.key
 }
 
-func (k *ParsedRobotsKey) KeyIsUserAgent(key string) bool {
+func keyIsUserAgent(key string) bool {
 	// Line :680
 	return startsWithIgnoreCase(key, "user-agent") ||
 		(AllowFrequentTypos && (startsWithIgnoreCase(key, "useragent") ||
 			startsWithIgnoreCase(key, "user agent")))
 }
 
-func (k *ParsedRobotsKey) KeyIsAllow(key string) bool {
+func keyIsAllow(key string) bool {
 	// Line :687
 	return startsWithIgnoreCase(key, "allow")
 }
 
-func (k *ParsedRobotsKey) KeyIsDisallow(key string) bool {
+func keyIsDisallow(key string) bool {
 	// Line :691
 	return startsWithIgnoreCase(key, "disallow") ||
 		(AllowFrequentTypos && (startsWithIgnoreCase(key, "dissallow") ||
@@ -348,7 +343,7 @@ func (k *ParsedRobotsKey) KeyIsDisallow(key string) bool {
 			startsWithIgnoreCase(key, "disallaw")))
 }
 
-func (k *ParsedRobotsKey) KeyIsSitemap(key string) bool {
+func keyIsSitemap(key string) bool {
 	// Line :701
 	return startsWithIgnoreCase(key, "sitemap") ||
 		startsWithIgnoreCase(key, "site-map")
@@ -360,52 +355,54 @@ func startsWithIgnoreCase(x, y string) bool {
 
 //
 
-func EmitKeyValueToHandler(line int, key *ParsedRobotsKey, value string, handler RobotsParseHandler) {
+func emitKeyValueToHandler(line int, key parsedKey, value string, handler ParseHandler) {
 	// Line :262
 	switch key.Type() {
-	case UserAgent:
+	case userAgentKey:
 		handler.HandleUserAgent(line, value)
-	case Allow:
+	case allowKey:
 		handler.HandleAllow(line, value)
-	case Disallow:
+	case disallowKey:
 		handler.HandleDisallow(line, value)
-	case Sitemap:
+	case sitemapKey:
 		handler.HandleSitemap(line, value)
-	case Unknown:
-		handler.HandleUnknownAction(line, key.GetUnknownText(), value)
+	case unknownKey:
+		handler.HandleUnknownAction(line, key.UnknownKey(), value)
 	}
 }
 
 //
 
-type Key = ParsedRobotsKey
-
-type RobotsTxtParser struct {
+type Parser struct {
 	// Line :278
 	robotsBody string // TODO Should be []byte
-	handler    RobotsParseHandler
+	handler    ParseHandler
 }
 
-func NewRobotsTxtParser(robotsBody string, handler RobotsParseHandler) *RobotsTxtParser {
+func NewParser(robotsBody string, handler ParseHandler) *Parser {
 	// Line :282
-	p := RobotsTxtParser{
+	p := Parser{
 		robotsBody: robotsBody,
 		handler:    handler,
 	}
 	return &p
 }
 
-func (p *RobotsTxtParser) NeedEscapeValueForKey(key *Key) bool {
+func (p *Parser) needEscapeValueForKey(key parsedKey) bool {
 	// Line :300
 	switch key.Type() {
-	case UserAgent, Sitemap:
+	case userAgentKey, sitemapKey:
 		return false
 	default:
 		return true
 	}
 }
 
-func (p *RobotsTxtParser) GetKeyAndValueFrom(line string) (string, string, bool) {
+// parseKeyAndValue attempts to parse a line of robots.txt into a key/value pair.
+//
+// On success, the parsed key and value, and true, are returned. If parsing is
+// unsuccessful, parseKeyAndValue returns two empty strings and false.
+func (p *Parser) parseKeyAndValue(line string) (string, string, bool) {
 	// Line :317
 	// Remove comments from the current robots.txt line.
 	comment := strings.IndexByte(line, '#')
@@ -444,33 +441,35 @@ func (p *RobotsTxtParser) GetKeyAndValueFrom(line string) (string, string, bool)
 	key := line[:sep]            // Key starts at beginning of line, and stops at the separator.
 	key = strings.TrimSpace(key) // Get rid of any trailing whitespace.
 
-	if len(key) > 0 {
-		value := line[sep+1:]            // Value starts after the separator.
-		value = strings.TrimSpace(value) // Get rid of any leading whitespace.
-		return key, value, true
+	if len(key) == 0 {
+		return "", "", false
 	}
 
-	return key, "", false
+	value := line[sep+1:]            // Value starts after the separator.
+	value = strings.TrimSpace(value) // Get rid of any leading whitespace.
+	return key, value, true
 }
 
-func (p *RobotsTxtParser) ParseAndEmitLine(currentLine int, line string /* TODO []byte here? */) {
+func (p *Parser) parseAndEmitLine(currentLine int, line string) {
 	// Line :362
-	stringKey, value, ok := p.GetKeyAndValueFrom(line)
+	stringKey, value, ok := p.parseKeyAndValue(line)
 	if !ok {
 		return
 	}
 
-	key := &Key{}
-	key.Parse(stringKey)
-	if p.NeedEscapeValueForKey(key) {
-		escapedValue := MaybeEscapePattern(value)
-		EmitKeyValueToHandler(currentLine, key, escapedValue, p.handler)
-	} else {
-		EmitKeyValueToHandler(currentLine, key, value, p.handler)
+	key := parseKey(stringKey)
+	if p.needEscapeValueForKey(key) {
+		value = escapePattern(value)
 	}
+	emitKeyValueToHandler(currentLine, key, value, p.handler)
 }
 
-func (p *RobotsTxtParser) Parse() {
+// Parse body of this Parser's robots.txt and emit parse callbacks. This will accept
+// typical typos found in robots.txt, such as 'disalow'.
+//
+// Note, this function will accept all kind of input but will skip
+// everything that does not look like a robots directive.
+func (p *Parser) Parse() {
 	// TODO see line :381
 	// UTF-8 byte order marks.
 	utfBOM := []byte{0xEF, 0xBB, 0xBF}
@@ -526,61 +525,55 @@ func (p *RobotsTxtParser) Parse() {
 			isCRLFContinuation := len(lineBuffer) == 0 && lastWasCarriageReturn && b == 0x0A
 			if !isCRLFContinuation {
 				lineNum++
-				p.ParseAndEmitLine(lineNum, string(lineBuffer))
+				p.parseAndEmitLine(lineNum, string(lineBuffer))
 			}
 			lineBuffer = lineBuffer[:0]
 			lastWasCarriageReturn = b == 0x0D
 		}
 	}
 	lineNum++
-	p.ParseAndEmitLine(lineNum, string(lineBuffer))
+	p.parseAndEmitLine(lineNum, string(lineBuffer))
 	p.handler.HandleRobotsEnd()
 }
 
 //
 
-var _ RobotsMatchStrategy = LongestMatchRobotsMatchStrategy{}
+var _ MatchStrategy = LongestMatchStrategy{}
 
-// Implements the default robots.txt matching strategy. The maximum number of
-// characters matched by a pattern is returned as its match priority.
-type LongestMatchRobotsMatchStrategy struct{}
+// LongestMatchStrategy implements the default robots.txt matching strategy.
+//
+// The maximum number of characters matched by a pattern is returned as its match priority.
+type LongestMatchStrategy struct{}
 
-func (s LongestMatchRobotsMatchStrategy) MatchAllow(path, pattern string) int {
+func (s LongestMatchStrategy) MatchAllow(path, pattern string) int {
 	// Line :640
-	if s.Matches(path, pattern) {
+	if Matches(path, pattern) {
 		return len(pattern)
 	}
 	return -1
 }
 
-func (s LongestMatchRobotsMatchStrategy) MatchDisallow(path, pattern string) int {
+func (s LongestMatchStrategy) MatchDisallow(path, pattern string) int {
 	// Line :645
-	if s.Matches(path, pattern) {
+	if Matches(path, pattern) {
 		return len(pattern)
 	}
 	return -1
 }
 
-func (s LongestMatchRobotsMatchStrategy) Matches(path, pattern string) bool {
-	return RobotsMatchStrategy_Matches(path, pattern)
-}
-
 //
 
-// Parses body of a robots.txt and emits parse callbacks. This will accept
-// typical typos found in robots.txt, such as 'disalow'.
-//
-// Note, this function will accept all kind of input but will skip
-// everything that does not look like a robots directive.
-func ParseRobotsTxt(robotsBody string, parseCallback RobotsParseHandler) {
+// Parse uses the given robots.txt body and ParseHandler
+// to create a Parser, and calls its Parse method.
+func Parse(robotsBody string, handler ParseHandler) {
 	// Line :454
-	parser := NewRobotsTxtParser(robotsBody, parseCallback)
+	parser := NewParser(robotsBody, handler)
 	parser.Parse()
 }
 
 //
 
-// Create a RobotsMatcher with the default matching strategy. The default
+// NewRobotsMatcher creates a RobotsMatcher with the default matching strategy. The default
 // matching strategy is longest-match as opposed to the former internet draft
 // that provisioned first-match strategy. Analysis shows that longest-match,
 // while more restrictive for crawlers, is what webmasters assume when writing
@@ -595,14 +588,15 @@ func ParseRobotsTxt(robotsBody string, parseCallback RobotsParseHandler) {
 func NewRobotsMatcher() *RobotsMatcher {
 	// Line :460
 	m := RobotsMatcher{
-		allowMatch:    NewMatchHierarchy(),
-		disallowMatch: NewMatchHierarchy(),
-		matchStrategy: LongestMatchRobotsMatchStrategy{},
+		allow:         newMatchHierarchy(),
+		disallow:      newMatchHierarchy(),
+		MatchStrategy: LongestMatchStrategy{},
 	}
 	return &m
 }
 
-func (m *RobotsMatcher) InitUserAgentsAndPath(userAgents []string, path string) {
+// init initialises the userAgents and path for this RobotsMatcher.
+func (m *RobotsMatcher) init(userAgents []string, path string) {
 	// Line :478
 	m.path = path
 	if path[0] != '/' {
@@ -611,25 +605,33 @@ func (m *RobotsMatcher) InitUserAgentsAndPath(userAgents []string, path string) 
 	m.userAgents = userAgents
 }
 
-func (m *RobotsMatcher) AllowedByRobots(robotsBody string, userAgents []string, uri string) bool {
+func (m *RobotsMatcher) AgentsAllowed(robotsBody string, userAgents []string, uri string) bool {
 	// Line :487
 	// The url is not normalized (escaped, percent encoded) here because the user
 	// is asked to provide it in escaped form already.
-	path := GetPathParamsQuery(uri)
-	m.InitUserAgentsAndPath(userAgents, path)
-	ParseRobotsTxt(robotsBody, m)
-	return !m.disallow()
+	path := getPathParamsQuery(uri)
+	m.init(userAgents, path)
+	Parse(robotsBody, m)
+	return !m.disallowed()
 }
 
-func (m *RobotsMatcher) OneAgentAllowedByRobots(robotsBody string, userAgent string, uri string) bool {
+func AgentsAllowed(robotsBody string, userAgents []string, uri string) bool {
+	return NewRobotsMatcher().AgentsAllowed(robotsBody, userAgents, uri)
+}
+
+func (m *RobotsMatcher) AgentAllowed(robotsBody string, userAgent string, uri string) bool {
 	// Line :498
-	return m.AllowedByRobots(robotsBody, []string{userAgent}, uri)
+	return m.AgentsAllowed(robotsBody, []string{userAgent}, uri)
 }
 
-func (m *RobotsMatcher) disallow() bool {
+func AgentAllowed(robotsBody string, userAgent string, uri string) bool {
+	return NewRobotsMatcher().AgentAllowed(robotsBody, userAgent, uri)
+}
+
+func (m *RobotsMatcher) disallowed() bool {
 	// Line :506
-	if m.allowMatch.specific.priority > 0 || m.disallowMatch.specific.priority > 0 {
-		return m.disallowMatch.specific.priority > m.allowMatch.specific.priority
+	if m.allow.specific.priority > 0 || m.disallow.specific.priority > 0 {
+		return m.disallow.specific.priority > m.allow.specific.priority
 	}
 
 	if m.everSeenSpecificAgent {
@@ -638,16 +640,16 @@ func (m *RobotsMatcher) disallow() bool {
 		return false
 	}
 
-	if m.disallowMatch.global.priority > 0 || m.allowMatch.global.priority > 0 {
-		return m.disallowMatch.global.priority > m.allowMatch.global.priority
+	if m.disallow.global.priority > 0 || m.allow.global.priority > 0 {
+		return m.disallow.global.priority > m.allow.global.priority
 	}
 	return false
 }
 
-func (m *RobotsMatcher) disallowIgnoreGlobal() bool {
+func (m *RobotsMatcher) disallowedIgnoreGlobal() bool {
 	// Line :523
-	if m.allowMatch.specific.priority > 0 || m.disallowMatch.specific.priority > 0 {
-		return m.disallowMatch.specific.priority > m.allowMatch.specific.priority
+	if m.allow.specific.priority > 0 || m.disallow.specific.priority > 0 {
+		return m.disallow.specific.priority > m.allow.specific.priority
 	}
 	return false
 }
@@ -655,19 +657,19 @@ func (m *RobotsMatcher) disallowIgnoreGlobal() bool {
 func (m *RobotsMatcher) matchingLine() int {
 	// Line :530
 	if m.everSeenSpecificAgent {
-		return HigherPriorityMatch(m.disallowMatch.specific, m.allowMatch.specific).line
+		return higherPriorityMatch(m.disallow.specific, m.allow.specific).line
 	}
-	return HigherPriorityMatch(m.disallowMatch.global, m.allowMatch.global).line
+	return higherPriorityMatch(m.disallow.global, m.allow.global).line
 }
 
+// HandleRobotsStart is called at the start of parsing a robots.txt file,
+// and resets all instance member variables.
 func (m *RobotsMatcher) HandleRobotsStart() {
 	// Line :538
-	// This is a new robots.txt file, so we need to reset all the instance member
-	// variables. We do it in the same order the instance member variables are
-	// declared, so it's easier to keep track of which ones we have (or maybe
-	// haven't!) done.
-	m.allowMatch.Clear()
-	m.disallowMatch.Clear()
+	// We init in the same order the instance member variables are declared, so
+	// it's easier to keep track of which ones we have (or maybe haven't!) done.
+	m.allow.Clear()
+	m.disallow.Clear()
 
 	m.seenGlobalAgent = false
 	m.seenSpecificAgent = false
@@ -675,7 +677,10 @@ func (m *RobotsMatcher) HandleRobotsStart() {
 	m.seenSeparator = false
 }
 
-func /*(m *RobotsMatcher)*/ ExtractUserAgent(userAgent string) string {
+// extractUserAgent extracts the matchable part of a user agent string,
+// essentially stopping at the first invalid character.
+// Example: 'Googlebot/2.1' becomes 'Googlebot'
+func (m *RobotsMatcher) extractUserAgent(userAgent string) string {
 	// Line :552
 	// Allowed characters in user-agent are [a-zA-Z_-].
 	i := 0
@@ -692,11 +697,15 @@ func asciiIsAlpha(c byte) bool {
 	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
 }
 
-func /*(m *RobotsMatcher)*/ IsValidUserAgentToObey(userAgent string) bool {
+// isValidUserAgentToObey verifies that the given user agent is valid to be matched against
+// robots.txt. Valid user agent strings only contain the characters
+// [a-zA-Z_-].
+func (m *RobotsMatcher) isValidUserAgentToObey(userAgent string) bool {
 	// Line :562
-	return len(userAgent) > 0 && ExtractUserAgent(userAgent) == userAgent
+	return len(userAgent) > 0 && m.extractUserAgent(userAgent) == userAgent
 }
 
+// HandleUserAgent is called for every "User-Agent:" line in robots.txt.
 func (m *RobotsMatcher) HandleUserAgent(lineNum int, userAgent string) {
 	// Line :567
 	if m.seenSeparator {
@@ -711,7 +720,7 @@ func (m *RobotsMatcher) HandleUserAgent(lineNum int, userAgent string) {
 		(len(userAgent) == 1 || isSpace(userAgent[1])) {
 		m.seenGlobalAgent = true
 	} else {
-		userAgent = ExtractUserAgent(userAgent)
+		userAgent = m.extractUserAgent(userAgent)
 		for _, agent := range m.userAgents {
 			if equalsIgnoreCase(userAgent, agent) {
 				m.everSeenSpecificAgent = true
@@ -732,24 +741,25 @@ func equalsIgnoreCase(a, b string) bool {
 	// return strings.ToLower(a) == strings.ToLower(b)
 }
 
+// HandleAllow is called for every "Allow:" line in robots.txt.
 func (m *RobotsMatcher) HandleAllow(lineNum int, value string) {
 	// Line :589
 	if !m.seenAnyAgent() {
 		return
 	}
 	m.seenSeparator = true
-	priority := m.matchStrategy.MatchAllow(m.path, value)
+	priority := m.MatchStrategy.MatchAllow(m.path, value)
 	if priority >= 0 {
 		if m.seenSpecificAgent {
-			if m.allowMatch.specific.priority < priority {
-				m.allowMatch.specific.Set(priority, lineNum)
+			if m.allow.specific.priority < priority {
+				m.allow.specific.Set(priority, lineNum)
 			}
 		} else {
 			if !m.seenGlobalAgent {
 				panic("Not seen global agent") // TODO Cleanup this panic.
 			}
-			if m.allowMatch.global.priority < priority {
-				m.allowMatch.global.Set(priority, lineNum)
+			if m.allow.global.priority < priority {
+				m.allow.global.Set(priority, lineNum)
 			}
 		}
 	} else {
@@ -764,31 +774,41 @@ func (m *RobotsMatcher) HandleAllow(lineNum int, value string) {
 	}
 }
 
+// HandleDisallow is called for every "Disallow:" line in robots.txt.
 func (m *RobotsMatcher) HandleDisallow(lineNum int, value string) {
 	// Line :622
 	if !m.seenAnyAgent() {
 		return
 	}
 	m.seenSeparator = true
-	priority := m.matchStrategy.MatchDisallow(m.path, value)
+	priority := m.MatchStrategy.MatchDisallow(m.path, value)
 	if priority >= 0 {
 		if m.seenSpecificAgent {
-			if m.disallowMatch.specific.priority < priority {
-				m.disallowMatch.specific.Set(priority, lineNum)
+			if m.disallow.specific.priority < priority {
+				m.disallow.specific.Set(priority, lineNum)
 			}
 		} else {
 			if !m.seenGlobalAgent {
 				panic("Not seen global agent") // TODO Cleanup this panic.
 			}
-			if m.disallowMatch.global.priority < priority {
-				m.disallowMatch.global.Set(priority, lineNum)
+			if m.disallow.global.priority < priority {
+				m.disallow.global.Set(priority, lineNum)
 			}
 		}
 	}
 }
 
+// HandleRobotsEnd is called at the end of parsing the robots.txt file.
+//
+// For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleRobotsEnd() {}
 
+// HandleSitemap is called for every "Sitemap:" line in robots.txt.
+//
+// For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleSitemap(lineNum int, value string) {}
 
+// HandleUnknownAction is called for every unrecognised line in robots.txt.
+//
+// For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleUnknownAction(lineNum int, action, value string) {}

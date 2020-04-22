@@ -39,8 +39,8 @@
 package grobotstxt
 
 // Handler for directives found in robots.txt. These callbacks are called by
-// ParseRobotsTxt() in the sequence they have been found in the file.
-type RobotsParseHandler interface {
+// Parse() in the sequence they have been found in the file.
+type ParseHandler interface {
 	HandleRobotsStart()
 	HandleRobotsEnd()
 	HandleUserAgent(lineNum int, value string)
@@ -50,39 +50,39 @@ type RobotsParseHandler interface {
 	HandleUnknownAction(lineNum int, action, value string)
 }
 
-var _ RobotsParseHandler = &RobotsMatcher{}
+var _ ParseHandler = &RobotsMatcher{}
 
-// RobotsMatcher - matches robots.txt against URLs.
+// RobotsMatcher — matches robots.txt against URIs.
 //
-// The Matcher uses a default match strategy for Allow/Disallow patterns which
+// The RobotsMatcher uses a default match strategy for Allow/Disallow patterns which
 // is the official way of Google crawler to match robots.txt. It is also
 // possible to provide a custom match strategy.
 //
-// The entry point for the user is to call one of the *AllowedByRobots()
-// methods that return directly if a URL is being allowed according to the
+// The entry point for the user is to call one of the AgentAllowed()
+// methods that return directly if a URI is being allowed according to the
 // robots.txt and the crawl agent.
-// The RobotsMatcher can be re-used for URLs/robots.txt but is not thread-safe.
+//
+// The RobotsMatcher can be re-used for URIs/robots.txt but is not concurrency-safe.
 type RobotsMatcher struct {
 	// Line :87
 
 	// Line :222
-	allowMatch    *MatchHierarchy // Characters of 'url' matching Allow.
-	disallowMatch *MatchHierarchy // Characters of 'url' matching Disallow.
+
+	allow    *matchHierarchy // Characters of 'uri' matching Allow.
+	disallow *matchHierarchy // Characters of 'uri' matching Disallow.
 
 	seenGlobalAgent       bool // True if processing global agent rules.
 	seenSpecificAgent     bool // True if processing our specific agent.
 	everSeenSpecificAgent bool // True if we ever saw a block for our agent.
 	seenSeparator         bool // True if saw any key: value pair.
 
-	// The path we want to pattern match. Not owned and only a valid pointer
-	// during the lifetime of *AllowedByRobots calls.
+	// The path we want to pattern match.
 	path string
 
-	// The User-Agents we are interested in. Not owned and only a valid
-	// pointer during the lifetime of *AllowedByRobots calls.
+	// The User-Agents we are interested in.
 	userAgents []string
 
-	matchStrategy RobotsMatchStrategy
+	MatchStrategy MatchStrategy
 }
 
 func (m *RobotsMatcher) seenAnyAgent() bool {
@@ -92,7 +92,7 @@ func (m *RobotsMatcher) seenAnyAgent() bool {
 
 //
 
-const NoMatchPriority = -1
+const noMatchPriority = -1
 
 // Instead of just maintaining a Boolean indicating whether a given line has
 // matched, we maintain a count of the maximum number of characters matched by
@@ -103,32 +103,33 @@ const NoMatchPriority = -1
 //
 // The priority is initialized with a negative value to make sure that a match
 // of priority 0 is higher priority than no match at all.
-type Match struct {
+type match struct {
 	// Line :181
 	priority int
 	line     int
 }
 
-func NewMatch() *Match {
-	return &Match{
-		priority: NoMatchPriority,
+// newMatch returns a new Match with an initial priority of noMatchPriority.
+func newMatch() *match {
+	return &match{
+		priority: noMatchPriority,
 	}
 }
 
-func (m *Match) Set(priority, line int) {
+func (m *match) Set(priority, line int) {
 	m.priority = priority
 	m.line = line
 }
 
-func (m *Match) Clear() {
-	m.Set(NoMatchPriority, 0)
+// Clear resets the internal Match state
+// values to their initial state.
+func (m *match) Clear() {
+	m.Set(noMatchPriority, 0)
 }
 
-// func (m *Match) HigherPriorityMatch(a, b *Match) *Match {
-// 	return Match_HigherPriorityMatch(a, b)
-// }
-
-func HigherPriorityMatch(a, b *Match) *Match {
+// higherPriorityMatch takes two Matches and returns
+// the one with the highest priority.
+func higherPriorityMatch(a, b *match) *match {
 	if a.priority > b.priority {
 		return a
 	}
@@ -137,20 +138,24 @@ func HigherPriorityMatch(a, b *Match) *Match {
 
 //
 
-type MatchHierarchy struct {
-	// Line :212
-	global   *Match // Match for '*'
-	specific *Match // Match for queried agent.
+// For each of the directives within user-agent sections, we keep global and specific
+// match scores.
+
+// Line :212
+
+type matchHierarchy struct {
+	global   *match // Match for '*'
+	specific *match // Match for queried agent.
 }
 
-func NewMatchHierarchy() *MatchHierarchy {
-	return &MatchHierarchy{
-		global:   NewMatch(),
-		specific: NewMatch(),
+func newMatchHierarchy() *matchHierarchy {
+	return &matchHierarchy{
+		global:   newMatch(),
+		specific: newMatch(),
 	}
 }
 
-func (m *MatchHierarchy) Clear() {
+func (m *matchHierarchy) Clear() {
 	m.global.Clear()
 	m.specific.Clear()
 }
