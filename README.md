@@ -20,9 +20,11 @@ for webmasters, that allows testing a single URL and user-agent against
 a robots.txt. Ours is called `icanhasrobot`, and its inputs and outputs
 are identical to the original tool.
 
-## Installation
+## Quickstart
 
-### For developers
+### Installation
+
+#### For developers
 
 Get the package (only needed if not using modules):
 
@@ -36,7 +38,7 @@ Use the package within your code (see examples below):
 import "github.com/jimsmart/grobotstxt"
 ```
 
-### For webmasters
+#### For webmasters
 
 Assumes Go is installed, and its environment is already set up.
 
@@ -63,7 +65,7 @@ user-agent 'YourBot' with URI 'https://example.com/url': ALLOWED
 
 If `$GOBIN` is not included in your environment's `$PATH`, use the full path `~/go/bin/icanhasrobot` when invoking the executable.
 
-## Example Code
+### Example Code
 
 ```go
 import "github.com/jimsmart/grobotstxt"

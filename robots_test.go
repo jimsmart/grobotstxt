@@ -798,49 +798,6 @@ var _ = Describe("Robots", func() {
 		}()
 	})
 
-	//
-
-	// // Line :948
-	// TestPath := func(uri, expected string) {
-	// 	x := grobotstxt.GetPathParamsQuery(uri)
-	// 	Expect(x).To(Equal(expected))
-	// }
-
-	// TestEscape := func(uri, expected string) {
-	// 	x := grobotstxt.EscapePattern(uri)
-	// 	Expect(x).To(Equal(expected))
-	// }
-
-	// It("should TestGetPathParamsQuery", func() {
-	// 	// Only testing URLs that are already correctly escaped here.
-	// 	TestPath("", "/")
-	// 	TestPath("http://www.example.com", "/")
-	// 	TestPath("http://www.example.com/", "/")
-	// 	TestPath("http://www.example.com/a", "/a")
-	// 	TestPath("http://www.example.com/a/", "/a/")
-	// 	TestPath("http://www.example.com/a/b?c=http://d.e/", "/a/b?c=http://d.e/")
-	// 	TestPath("http://www.example.com/a/b?c=d&e=f#fragment", "/a/b?c=d&e=f")
-	// 	TestPath("example.com", "/")
-	// 	TestPath("example.com/", "/")
-	// 	TestPath("example.com/a", "/a")
-	// 	TestPath("example.com/a/", "/a/")
-	// 	TestPath("example.com/a/b?c=d&e=f#fragment", "/a/b?c=d&e=f")
-	// 	TestPath("a", "/")
-	// 	TestPath("a/", "/")
-	// 	TestPath("/a", "/a")
-	// 	TestPath("a/b", "/b")
-	// 	TestPath("example.com?a", "/?a")
-	// 	TestPath("example.com/a;b#c", "/a;b")
-	// 	TestPath("//a/b/c", "/b/c")
-	// })
-
-	// It("should TestMaybeEscapePattern", func() {
-	// 	TestEscape("http://www.example.com", "http://www.example.com")
-	// 	TestEscape("/a/b/c", "/a/b/c")
-	// 	TestEscape("á", "%C3%A1")
-	// 	TestEscape("%aa", "%AA")
-	// })
-
 })
 
 type robotsStatsReporter struct {
