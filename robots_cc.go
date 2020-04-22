@@ -509,7 +509,7 @@ func (p *Parser) Parse() {
 		b = p.robotsBody[cur]
 		cur++
 		if b != 0x0A && b != 0x0D { // Non-line-ending char case.
-			// Put in next spot on current line, as long as there's room.
+			// Add to current line, as long as there's room.
 			if end-start < maxLineLen-1 {
 				end++
 			}
