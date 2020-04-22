@@ -129,7 +129,7 @@ $ go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 ## Notes
 
-Quoting the Notes from the original project's README (ammended for method/tool name changes):
+Quoting the Notes from the original project's README (with method/tool name changes):
 
 > Parsing of robots.txt files themselves is done exactly as in the production
 version of Googlebot, including how percent codes and unicode characters in
