@@ -16,30 +16,29 @@ library](https://github.com/google/robotstxt).
 - Minor language-specific cleanups
 
 As per the original library, we include a small standalone binary, for webmasters, 
-that allows testing a single URL and user-agent against a robots.txt. 
-
+that allows testing a single URL and user-agent against a robots.txt. Ours is called `icanhasrobot`.
 
 ## Installation
 
-### Package grobotstxt for developers
+### For developers
 
-Install the package (if you are not using modules):
+Get the package (only needed if not using modules):
 
 ```bash
 $ go get github.com/jimsmart/grobotstxt
 ```
 
-Use the package within your code:
+Use the package within your code (see examples below):
 
 ```go
 import "github.com/jimsmart/grobotstxt"
 ```
 
-### Executable tool icanhasrobot for webmasters
+### For webmasters
 
 Assumes Go is installed, and its environment is already set up.
 
-Fetch and install the package:
+Fetch the package:
 
 ```bash
 $ go get github.com/jimsmart/grobotstxt
@@ -61,7 +60,6 @@ user-agent 'YourBot' with URI 'https://example.com/url': ALLOWED
 ```
 
 If `$GOBIN` is not included in your environment's `$PATH`, use the full path `~/go/bin/icanhasrobot` when invoking the executable.
-
 
 ## Example Code
 
