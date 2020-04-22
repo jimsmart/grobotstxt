@@ -15,8 +15,9 @@ library](https://github.com/google/robotstxt).
 - All 100% of original test suite functionality
 - Minor language-specific cleanups
 
-As per the original library, we include a small standalone binary, for webmasters, 
-that allows testing a single URL and user-agent against a robots.txt. Ours is called `icanhasrobot`.
+As per Google's original library, we include a small standalone binary, 
+for webmasters, that allows testing a single URL and user-agent against 
+a robots.txt. Ours is called `icanhasrobot`.
 
 ## Installation
 
@@ -116,7 +117,7 @@ Parsing of robots.txt files themselves is done exactly as in the production
 version of Googlebot, including how percent codes and unicode characters in
 patterns are handled. The user must ensure however that the URI passed to the
 AgentAllowed and AgentsAllowed functions, or to the URI parameter
-of the robots tool, follows the format specified by RFC3986, since this library
+of the `icanhasrobot` tool, follows the format specified by RFC3986, since this library
 will not perform full normalization of those URI parameters. Only if the URI is
 in this format, the matching will be done according to the REP specification.
 
