@@ -31,7 +31,7 @@ Quoting the README from Google's robots.txt parser and matcher repo:
 >
 > The library is slightly modified (i.e. some internal headers and equivalent symbols) production code used by Googlebot, Google's crawler, to determine which URLs it may access based on rules provided by webmasters in robots.txt files. The library is released open-source to help developers build tools that better reflect Google's robots.txt parsing and matching.
 
-This package aims to be a faithful conversion, from C++ to Go, of Google's robots.txt parser and matcher.
+Package grobotstxt aims to be a faithful conversion, from C++ to Go, of Google's robots.txt parser and matcher.
 
 ## Quickstart
 
@@ -129,10 +129,12 @@ $ go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 ## Notes
 
-Parsing of robots.txt files themselves is done exactly as in the production
+Quoting the Notes from the original project's README (ammended for method/tool name changes):
+
+> Parsing of robots.txt files themselves is done exactly as in the production
 version of Googlebot, including how percent codes and unicode characters in
 patterns are handled. The user must ensure however that the URI passed to the
-AgentAllowed and AgentsAllowed functions, or to the URI parameter
+`AgentAllowed` and `AgentsAllowed` functions, or to the URI parameter
 of the `icanhasrobot` tool, follows the format specified by RFC3986, since this library
 will not perform full normalization of those URI parameters. Only if the URI is
 in this format, the matching will be done according to the REP specification.
