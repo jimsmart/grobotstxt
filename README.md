@@ -15,28 +15,60 @@ library](https://github.com/google/robotstxt).
 - All 100% of original test suite functionality
 - Minor language-specific cleanups
 
-The original package includes a standalone binary but that has not yet been ported as part of this package.
+As per the original library, we include a small standalone binary, for webmasters, 
+that allows testing a single URL and user-agent against a robots.txt. 
+
 
 ## Installation
+
+### Package grobotstxt for developers
+
+Install the package (if you are not using modules):
+
 ```bash
 $ go get github.com/jimsmart/grobotstxt
 ```
 
+Use the package within your code:
+
 ```go
 import "github.com/jimsmart/grobotstxt"
 ```
 
-### Dependencies
+### Executable tool icanhasrobot for webmasters
 
-- Standard library.
-- [Ginkgo](https://onsi.github.io/ginkgo/) and [Gomega](https://onsi.github.io/gomega/) if you wish to run the tests.
+Assumes Go is installed, and its environment is already set up.
 
-## Examples
+Fetch and install the package:
+
+```bash
+$ go get github.com/jimsmart/grobotstxt
+```
+
+Build and install the standalone binary executable:
+
+```bash
+$ go install github.com/jimsmart/grobotstxt/...
+```
+
+By default, the resulting binary executable will be `~/go/bin/icanhasrobot` (assuming no customisation has been made to `$GOPATH` or `$GOBIN`).
+
+Use the tool:
+
+```bash
+$ icanhasrobot ~/local/path/to/robots.txt YourBot https://example.com/url
+user-agent 'YourBot' with URI 'https://example.com/url': ALLOWED
+```
+
+If `$GOBIN` is not included in your environment's `$PATH`, use the full path `~/go/bin/icanhasrobot` when invoking the executable.
+
+
+## Example Code
 
 ```go
 import "github.com/jimsmart/grobotstxt"
 
-// Fetched robots.txt file.
+// Coontents of robots.txt file.
 robotsTxt := `
     # robots.txt with restricted area
 
