@@ -516,7 +516,7 @@ func (p *Parser) Parse() {
 		} else { // Line-ending character char case.
 			// Only emit an empty line if this was not due to the second character
 			// of the DOS line-ending \r\n .
-			isCRLFContinuation := end-start == 0 && lastWasCarriageReturn && b == 0x0A
+			isCRLFContinuation := end == start && lastWasCarriageReturn && b == 0x0A
 			if !isCRLFContinuation {
 				lineNum++
 				p.parseAndEmitLine(lineNum, p.robotsBody[start:end])
