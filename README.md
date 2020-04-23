@@ -139,6 +139,8 @@ of the `icanhasrobot` tool, follows the format specified by RFC3986, since this 
 will not perform full normalization of those URI parameters. Only if the URI is
 in this format, the matching will be done according to the REP specification.
 
+Related: [Issue #1](https://github.com/jimsmart/grobotstxt/issues/1)
+
 ## License
 
 Like the original library, package grobotstxt is licensed under the terms of the
