@@ -150,3 +150,7 @@ Apache License, Version 2.0. See [LICENSE](LICENSE) for more information.
 
 *   Original project:
     [Google robots.txt parser and matcher library](https://github.com/google/robotstxt)
+
+## History
+
+- v0.1.0 (2020-04-23) Initial release.
