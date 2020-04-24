@@ -19,7 +19,7 @@ library](https://github.com/google/robotstxt).
 As per Google's original library, we include a small standalone binary, 
 for webmasters, that allows testing a single URL and user-agent against 
 a robots.txt. Ours is called `icanhasrobot`, and its inputs and outputs
-are identical to the original tool.
+are compatible with the original tool.
 
 ## About
 
@@ -93,15 +93,12 @@ robotsTxt := `
     Sitemap: http://example.net/sitemap.xml
 `
 
-// User-agent of bot.
-const userAgent = "FooBot/1.0"
-
 // Target URI.
 uri := "http://example.net/members/index.html"
 
 
 // Is bot allowed to visit this page?
-ok := grobotstxt.AgentAllowed(robotsTxt, userAgent, uri)
+ok := grobotstxt.AgentAllowed(robotsTxt, "FooBot/1.0", uri)
 
 ```
 
@@ -129,17 +126,15 @@ $ go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 ## Notes
 
-Quoting the Notes from the original project's README (with appropriate method/tool name changes):
-
-> Parsing of robots.txt files themselves is done exactly as in the production
-version of Googlebot, including how percent codes and unicode characters in
-patterns are handled. The user must ensure however that the URI passed to the
+The original library required that the URI passed to the
 `AgentAllowed` and `AgentsAllowed` functions, or to the URI parameter
-of the `icanhasrobot` tool, follows the format specified by RFC3986, since this library
-will not perform full normalization of those URI parameters. Only if the URI is
-in this format, the matching will be done according to the REP specification.
+of the standalone binary tool, should follow the format specified by RFC3986, because the library did not perform URI normalisation.
 
-Related: [Issue #1](https://github.com/jimsmart/grobotstxt/issues/1)
+In Go, with its native UTF-8 strings, this requirement is not in line with other commonly used APIs, and is therefore a somewhat of a surprising/unexpected behaviour.
+
+Because of this, the Go API presented here has been ammended to automatically handle UTF-8 URIs, and perfoms normalisation internally.
+
+This is the only behavioural change between grobotstxt and the original C++ library.
 
 ## License
 
@@ -153,4 +148,5 @@ Apache License, Version 2.0. See [LICENSE](LICENSE) for more information.
 
 ## History
 
+- v0.2.0 (2020-04-24) Removed requirement for pre-encoded RFC3986 URIs on front-facing API, instead accepting UTF-8 and performing normalisation internally.
 - v0.1.0 (2020-04-23) Initial release.

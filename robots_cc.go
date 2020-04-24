@@ -30,6 +30,7 @@ package grobotstxt
 
 import (
 	"bytes"
+	"net/url"
 	"strings"
 	"unicode"
 )
@@ -607,6 +608,18 @@ func (m *RobotsMatcher) AgentsAllowed(robotsBody string, userAgents []string, ur
 	// Line :487
 	// The url is not normalized (escaped, percent encoded) here because the user
 	// is asked to provide it in escaped form already.
+
+	// Departing from Googlebot's behaviour,
+	// and making the API work as expected by Go coders,
+	// we normalise the URI here.
+	u, err := url.Parse(uri)
+	if err != nil {
+		// If the given URI doesn't parse,
+		// we say access is not allowed.
+		return false
+	}
+	uri = u.String()
+
 	path := getPathParamsQuery(uri)
 	m.init(userAgents, path)
 	Parse(robotsBody, m)

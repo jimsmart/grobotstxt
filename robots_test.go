@@ -377,8 +377,13 @@ var _ = Describe("Robots", func() {
 			"Disallow: /\n" +
 			"Allow: /foo/bar/ツ\n"
 		EXPECT_TRUE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/%E3%83%84"))
-		// The parser encodes the 3-byte character, but the URL is not %-encoded.
-		EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/ツ"))
+		// // The parser encodes the 3-byte character, but the URL is not %-encoded.
+		// EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/ツ"))
+
+		// Departing from Googlebot behaviour:
+		// we perform URI normalisation internally now.
+		// Due to that, this now returns true here, not false.
+		EXPECT_TRUE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/ツ"))
 	})
 
 	// Percent encoded 3 byte character: /foo/bar/%E3%83%84 -> /foo/bar/%E3%83%84
@@ -388,7 +393,12 @@ var _ = Describe("Robots", func() {
 			"Disallow: /\n" +
 			"Allow: /foo/bar/%E3%83%84\n"
 		EXPECT_TRUE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/%E3%83%84"))
-		EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/ツ"))
+		// EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/ツ"))
+
+		// Departing from Googlebot behaviour:
+		// we perform URI normalisation internally now.
+		// Due to that, this now returns true here, not false.
+		EXPECT_TRUE(IsUserAgentAllowed(robotstxt, "FooBot", "http://foo.bar/foo/bar/ツ"))
 	})
 
 	// Percent encoded unreserved US-ASCII: /foo/bar/%62%61%7A -> NULL
