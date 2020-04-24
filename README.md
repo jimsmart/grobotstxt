@@ -15,6 +15,7 @@ library](https://github.com/google/robotstxt).
 - All 100% of original test suite functionality
 - Minor language-specific cleanups
 - Added a helper to extract Sitemap URIs
+- Super simple API
 
 As per Google's original library, we include a small standalone binary, 
 for webmasters, that allows testing a single URL and user-agent against 
