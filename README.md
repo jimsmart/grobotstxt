@@ -148,5 +148,5 @@ Apache License, Version 2.0. See [LICENSE](LICENSE) for more information.
 
 ## History
 
-- v0.2.0 (2020-04-24) Removed requirement for pre-encoded RFC3986 URIs on front-facing API, instead accepting UTF-8 and performing normalisation internally.
+- v0.2.0 (2020-04-24) Removed requirement for pre-encoded RFC3986 URIs on front-facing API.
 - v0.1.0 (2020-04-23) Initial release.
