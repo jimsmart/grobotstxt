@@ -86,7 +86,7 @@ If `$GOBIN` is not included in your environment's `$PATH`, use the full path `~/
 ```go
 import "github.com/jimsmart/grobotstxt"
 
-// Coontents of robots.txt file.
+// Contents of robots.txt file.
 robotsTxt := `
     # robots.txt with restricted area
 
