@@ -604,6 +604,9 @@ func (m *RobotsMatcher) init(userAgents []string, path string) {
 
 // AgentsAllowed parses the given robots.txt content, matching it against
 // the given userAgents and URI, and returns true if access is allowed.
+//
+// AgentsAllowed will also return false if the given URI is invalid
+// (cannot successfully be parsed by url.Parse).
 func (m *RobotsMatcher) AgentsAllowed(robotsBody string, userAgents []string, uri string) bool {
 	// Line :487
 	// The url is not normalized (escaped, percent encoded) here because the user
@@ -628,12 +631,18 @@ func (m *RobotsMatcher) AgentsAllowed(robotsBody string, userAgents []string, ur
 
 // AgentsAllowed parses the given robots.txt content, matching it against
 // the given userAgents and URI, and returns true if access is allowed.
+//
+// AgentsAllowed will also return false if the given URI is invalid
+// (cannot successfully be parsed by url.Parse).
 func AgentsAllowed(robotsBody string, userAgents []string, uri string) bool {
 	return NewRobotsMatcher().AgentsAllowed(robotsBody, userAgents, uri)
 }
 
 // AgentAllowed parses the given robots.txt content, matching it against
 // the given userAgent and URI, and returns true if access is allowed.
+//
+// AgentAllowed will also return false if the given URI is invalid
+// (cannot successfully be parsed by url.Parse).
 func (m *RobotsMatcher) AgentAllowed(robotsBody string, userAgent string, uri string) bool {
 	// Line :498
 	return m.AgentsAllowed(robotsBody, []string{userAgent}, uri)
@@ -641,6 +650,9 @@ func (m *RobotsMatcher) AgentAllowed(robotsBody string, userAgent string, uri st
 
 // AgentAllowed parses the given robots.txt content, matching it against
 // the given userAgent and URI, and returns true if access is allowed.
+//
+// AgentAllowed will also return false if the given URI is invalid
+// (cannot successfully be parsed by url.Parse).
 func AgentAllowed(robotsBody string, userAgent string, uri string) bool {
 	return NewRobotsMatcher().AgentAllowed(robotsBody, userAgent, uri)
 }
