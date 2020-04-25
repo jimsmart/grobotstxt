@@ -81,6 +81,8 @@ If `$GOBIN` is not included in your environment's `$PATH`, use the full path `~/
 
 ### Example Code
 
+#### `AgentAllowed`
+
 ```go
 import "github.com/jimsmart/grobotstxt"
 
@@ -103,13 +105,15 @@ ok := grobotstxt.AgentAllowed(robotsTxt, "FooBot/1.0", uri)
 
 ```
 
+See also `AgentsAllowed`.
+
+#### `Sitemaps`
+
 Additionally, one can also extract all Sitemap URIs from a given robots.txt file:
 
 ```go
 sitemaps := grobotstxt.Sitemaps(robotsTxt)
 ```
-
-See GoDocs for further information.
 
 ## Documentation
 
