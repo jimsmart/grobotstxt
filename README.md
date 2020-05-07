@@ -17,7 +17,7 @@ library](https://github.com/google/robotstxt).
 - Added a helper to extract Sitemap URIs
 - Super simple API
 
-As per Google's original library, we include a small standalone binary, 
+As per Google's original library, we include a small standalone binary executable, 
 for webmasters, that allows testing a single URL and user-agent against 
 a robots.txt. Ours is called `icanhasrobot`, and its inputs and outputs
 are compatible with the original tool.
@@ -133,18 +133,20 @@ $ go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 The original library required that the URI passed to the
 `AgentAllowed` and `AgentsAllowed` functions, or to the URI parameter
-of the standalone binary tool, should follow the format specified by RFC3986, because the library did not perform URI normalisation.
+of the standalone binary tool, should follow the encoding/escaping format specified by RFC3986, because the library itself does not perform URI normalisation.
 
-In Go, with its native UTF-8 strings, this requirement is not in line with other commonly used APIs, and is therefore a somewhat of a surprising/unexpected behaviour.
+In Go, with its native UTF-8 strings, this requirement is not in line with other commonly used APIs, and is therefore somewhat of a surprising/unexpected behaviour to Go developers.
 
-Because of this, the Go API presented here has been ammended to automatically handle UTF-8 URIs, and perfoms normalisation internally.
+Because of this, the Go API presented here has been ammended to automatically handle UTF-8 URIs, and performs any necessary normalisation internally.
 
 This is the only behavioural change between grobotstxt and the original C++ library.
 
 ## License
 
 Like the original library, package grobotstxt is licensed under the terms of the
-Apache License, Version 2.0. See [LICENSE](LICENSE) for more information.
+Apache License, Version 2.0. 
+
+See [LICENSE](LICENSE) for more information.
 
 ## Links
 
