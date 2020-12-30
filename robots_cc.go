@@ -657,6 +657,7 @@ func AgentAllowed(robotsBody string, userAgent string, uri string) bool {
 	return NewRobotsMatcher().AgentAllowed(robotsBody, userAgent, uri)
 }
 
+// disallowed returns true if we are disallowed from crawling a matching URI.
 func (m *RobotsMatcher) disallowed() bool {
 	// Line :506
 	if m.allow.specific.priority > 0 || m.disallow.specific.priority > 0 {
@@ -675,6 +676,9 @@ func (m *RobotsMatcher) disallowed() bool {
 	return false
 }
 
+// disallowedIgnoreGlobal returns true if we are disallowed from crawling a
+// matching URI. Ignores any rules specified for the default user agent, and
+// bases its results only on the specified user agents.
 func (m *RobotsMatcher) disallowedIgnoreGlobal() bool {
 	// Line :523
 	if m.allow.specific.priority > 0 || m.disallow.specific.priority > 0 {
@@ -683,7 +687,8 @@ func (m *RobotsMatcher) disallowedIgnoreGlobal() bool {
 	return false
 }
 
-func (m *RobotsMatcher) matchingLine() int {
+// MatchingLine returns the line that matched or 0 if none matched.
+func (m *RobotsMatcher) MatchingLine() int {
 	// Line :530
 	if m.everSeenSpecificAgent {
 		return higherPriorityMatch(m.disallow.specific, m.allow.specific).line
@@ -837,7 +842,7 @@ func (m *RobotsMatcher) HandleRobotsEnd() {}
 // For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleSitemap(lineNum int, value string) {}
 
-// HandleUnknownAction is called for every unrecognised line in robots.txt.
+// HandleUnknownAction is called for every unrecognized line in robots.txt.
 //
 // For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleUnknownAction(lineNum int, action, value string) {}
