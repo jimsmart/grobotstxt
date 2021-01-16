@@ -57,7 +57,7 @@ func showHelp(argv []string) {
 		" is allowed or disallowed by the given robots.txt file.\n\n")
 	fmt.Fprint(os.Stderr, "Usage:\n"+
 		"  "+argv[0]+" <robots.txt filename> <user_agent> <URI>\n\n")
-	fmt.Fprint(os.Stderr, "The URI must be %-encoded according to RFC3986.\n\n")
+	// fmt.Fprint(os.Stderr, "The URI must be %-encoded according to RFC3986.\n\n")
 	fmt.Fprint(os.Stderr, "Example:\n"+
 		"  "+argv[0]+" robots.txt FooBot http://example.com/foo\n")
 }
