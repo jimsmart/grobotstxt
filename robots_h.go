@@ -38,8 +38,9 @@
 
 package grobotstxt
 
-// Handler for directives found in robots.txt. These callbacks are called by
-// Parse() in the sequence they have been found in the file.
+// ParseHandler is a handler for directives found in robots.txt.
+// These callbacks are called by Parse() in the sequence they
+// have been found in the file.
 type ParseHandler interface {
 	HandleRobotsStart()
 	HandleRobotsEnd()

@@ -155,5 +155,6 @@ See [LICENSE](LICENSE) for more information.
 
 ## History
 
+- v0.2.1 (2021-01-16) Expose more methods of RobotsMatcher as public. Thanks to [anatolym](https://github.com/anatolym)
 - v0.2.0 (2020-04-24) Removed requirement for pre-encoded RFC3986 URIs on front-facing API.
 - v0.1.0 (2020-04-23) Initial release.

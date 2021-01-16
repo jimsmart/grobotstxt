@@ -603,7 +603,8 @@ func (m *RobotsMatcher) init(userAgents []string, path string) {
 }
 
 // AgentsAllowed parses the given robots.txt content, matching it against
-// the given userAgents and URI, and returns true if access is allowed.
+// the given userAgents and URI, and returns true if the given URI
+// is allowed to be fetched by any user agent in the list.
 //
 // AgentsAllowed will also return false if the given URI is invalid
 // (cannot successfully be parsed by url.Parse).
@@ -626,11 +627,12 @@ func (m *RobotsMatcher) AgentsAllowed(robotsBody string, userAgents []string, ur
 	path := getPathParamsQuery(uri)
 	m.init(userAgents, path)
 	Parse(robotsBody, m)
-	return !m.disallowed()
+	return !m.Disallowed()
 }
 
 // AgentsAllowed parses the given robots.txt content, matching it against
-// the given userAgents and URI, and returns true if access is allowed.
+// the given userAgents and URI, and returns true if the given URI
+// is allowed to be fetched by any user agent in the list.
 //
 // AgentsAllowed will also return false if the given URI is invalid
 // (cannot successfully be parsed by url.Parse).
@@ -639,7 +641,8 @@ func AgentsAllowed(robotsBody string, userAgents []string, uri string) bool {
 }
 
 // AgentAllowed parses the given robots.txt content, matching it against
-// the given userAgent and URI, and returns true if access is allowed.
+// the given userAgent and URI, and returns true if the given URI
+// is allowed to be fetched by the given user agent.
 //
 // AgentAllowed will also return false if the given URI is invalid
 // (cannot successfully be parsed by url.Parse).
@@ -649,7 +652,8 @@ func (m *RobotsMatcher) AgentAllowed(robotsBody string, userAgent string, uri st
 }
 
 // AgentAllowed parses the given robots.txt content, matching it against
-// the given userAgent and URI, and returns true if access is allowed.
+// the given userAgent and URI, and returns true if the given URI
+// is allowed to be fetched by the given user agent.
 //
 // AgentAllowed will also return false if the given URI is invalid
 // (cannot successfully be parsed by url.Parse).
@@ -657,7 +661,8 @@ func AgentAllowed(robotsBody string, userAgent string, uri string) bool {
 	return NewRobotsMatcher().AgentAllowed(robotsBody, userAgent, uri)
 }
 
-func (m *RobotsMatcher) disallowed() bool {
+// Disallowed returns true if we are disallowed from crawling a matching URI.
+func (m *RobotsMatcher) Disallowed() bool {
 	// Line :506
 	if m.allow.specific.priority > 0 || m.disallow.specific.priority > 0 {
 		return m.disallow.specific.priority > m.allow.specific.priority
@@ -675,7 +680,10 @@ func (m *RobotsMatcher) disallowed() bool {
 	return false
 }
 
-func (m *RobotsMatcher) disallowedIgnoreGlobal() bool {
+// DisallowedIgnoreGlobal returns true if we are disallowed from crawling a
+// matching URI. Ignores any rules specified for the default user agent, and
+// bases its results only on the specified user agents.
+func (m *RobotsMatcher) DisallowedIgnoreGlobal() bool {
 	// Line :523
 	if m.allow.specific.priority > 0 || m.disallow.specific.priority > 0 {
 		return m.disallow.specific.priority > m.allow.specific.priority
@@ -683,12 +691,19 @@ func (m *RobotsMatcher) disallowedIgnoreGlobal() bool {
 	return false
 }
 
-func (m *RobotsMatcher) matchingLine() int {
+// MatchingLine returns the line that matched or 0 if none matched.
+func (m *RobotsMatcher) MatchingLine() int {
 	// Line :530
 	if m.everSeenSpecificAgent {
 		return higherPriorityMatch(m.disallow.specific, m.allow.specific).line
 	}
 	return higherPriorityMatch(m.disallow.global, m.allow.global).line
+}
+
+// EverSeenSpecificAgent returns true iff, when AgentsAllowed() was called,
+// the robots file referred explicitly to one of the specified user agents.
+func (m *RobotsMatcher) EverSeenSpecificAgent() bool {
+	return m.everSeenSpecificAgent
 }
 
 // HandleRobotsStart is called at the start of parsing a robots.txt file,
@@ -837,7 +852,7 @@ func (m *RobotsMatcher) HandleRobotsEnd() {}
 // For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleSitemap(lineNum int, value string) {}
 
-// HandleUnknownAction is called for every unrecognised line in robots.txt.
+// HandleUnknownAction is called for every unrecognized line in robots.txt.
 //
 // For RobotsMatcher, this does nothing.
 func (m *RobotsMatcher) HandleUnknownAction(lineNum int, action, value string) {}
