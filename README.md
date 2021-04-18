@@ -1,4 +1,4 @@
-# grobotstxt 
+# grobotstxt
 
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/travis/jimsmart/grobotstxt/master.svg)](https://travis-ci.org/jimsmart/grobotstxt)
@@ -7,7 +7,7 @@
 [![Used By](https://img.shields.io/sourcegraph/rrc/github.com/jimsmart/grobotstxt.svg)](https://sourcegraph.com/github.com/jimsmart/grobotstxt)
 [![Godoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/jimsmart/grobotstxt)
 
-grobotstxt is a native Go port of [Google's robots.txt parser and matcher C++ 
+grobotstxt is a native Go port of [Google's robots.txt parser and matcher C++
 library](https://github.com/google/robotstxt).
 
 - Direct function-for-function conversion/port
@@ -17,8 +17,8 @@ library](https://github.com/google/robotstxt).
 - Added a helper to extract Sitemap URIs
 - Super simple API
 
-As per Google's original library, we include a small standalone binary executable, 
-for webmasters, that allows testing a single URL and user-agent against 
+As per Google's original library, we include a small standalone binary executable,
+for webmasters, that allows testing a single URL and user-agent against
 a robots.txt. Ours is called `icanhasrobot`, and its inputs and outputs
 are compatible with the original tool.
 
@@ -43,7 +43,7 @@ Package grobotstxt aims to be a faithful conversion, from C++ to Go, of Google's
 Get the package (only needed if not using modules):
 
 ```bash
-$ go get github.com/jimsmart/grobotstxt
+go get github.com/jimsmart/grobotstxt
 ```
 
 Use the package within your code (see examples below):
@@ -59,13 +59,13 @@ Assumes Go is installed, and its environment is already set up.
 Fetch the package:
 
 ```bash
-$ go get github.com/jimsmart/grobotstxt
+go get github.com/jimsmart/grobotstxt
 ```
 
 Build and install the standalone binary executable:
 
 ```bash
-$ go install github.com/jimsmart/grobotstxt/...
+go install github.com/jimsmart/grobotstxt/...
 ```
 
 By default, the resulting binary executable will be `~/go/bin/icanhasrobot` (assuming no customisation has been made to `$GOPATH` or `$GOBIN`).
@@ -126,7 +126,7 @@ To run the tests execute `go test` inside the project folder.
 For a full coverage report, try:
 
 ```bash
-$ go test -coverprofile=coverage.out && go tool cover -html=coverage.out
+go test -coverprofile=coverage.out && go tool cover -html=coverage.out
 ```
 
 ## Notes
