@@ -18,12 +18,9 @@ jobs:
       matrix:
         goos: [linux, windows, darwin, freebsd]
         goarch: ["386", amd64]
-        # goarch: ["386", amd64, arm, arm64]
         exclude:
           - goarch: "386"
             goos: darwin
-          # - goarch: arm
-          #   goos: windows
 
     steps:
       - uses: actions/checkout@v2
@@ -32,7 +29,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # github_token: ${{ secrets.ACTION_TOKEN }}
-          # github_token: ${{ secrets.TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: "./cmd/icanhasrobot"
