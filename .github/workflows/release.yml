@@ -31,7 +31,8 @@ jobs:
       - uses: wangyoucao577/go-release-action@v1.16
         with:
           # github_token: ${{ secrets.GITHUB_TOKEN }}
-          github_token: ${{ secrets.ACTION_TOKEN }}
+          # github_token: ${{ secrets.ACTION_TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           project_path: "./cmd/icanhasrobot"
