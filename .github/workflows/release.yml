@@ -8,6 +8,7 @@ on:
   push:
     tags:
       - "*"
+      # - "v**"
 
 jobs:
   releases-matrix:
@@ -26,7 +27,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: wangyoucao577/go-release-action@v1.17
+      # - uses: wangyoucao577/go-release-action@v1.17
+      - uses: wangyoucao577/go-release-action@v1.16
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
