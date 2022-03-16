@@ -162,7 +162,7 @@ See [LICENSE](LICENSE) for more information.
 
 ## History
 
-- v1.0.3 (2022-03-16) Updates from upstream: Allow additional miss-spelling of 'disallow'. Additional tests. Make icanhasrobot tool return better exit codes. Make icanhasrobots work with multiple UAs.
+- v1.0.3 (2022-03-16) Updates from upstream: Allow additional miss-spelling of 'disallow'. Additional tests. Make icanhasrobot tool return better exit codes. Make icanhasrobot work with multiple UAs.
 - v1.0.2 (2022-03-16) Bugfix: Allow wider range of characters for user-agent.
 - v1.0.1 (2021-04-19) Updated modules. Switch from Travis CI to GitHub Actions.
 - v1.0.0 (2021-04-18) Tagged as stable.
