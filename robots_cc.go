@@ -727,18 +727,43 @@ func (m *RobotsMatcher) HandleRobotsStart() {
 func (m *RobotsMatcher) extractUserAgent(userAgent string) string {
 	// Line :552
 	// Allowed characters in user-agent are [a-zA-Z_-].
+
+	// Bugfix:
+	//
+	// According to RFC 7231, the 'product'  part of the user-agent
+	// is defined as a 'token', which allows:
+	//
+	//  "!" / "#" / "$" / "%" / "&" / "'" / "*"
+	//  / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+	//  / DIGIT / ALPHA
+	//
+	// See https://httpwg.org/specs/rfc7231.html#header.user-agent
+
 	i := 0
 	for ; i < len(userAgent); i++ {
 		c := userAgent[i]
-		if !(asciiIsAlpha(c) || c == '-' || c == '_') {
+		if !(asciiIsTokenChar(c)) {
 			break
 		}
 	}
 	return userAgent[:i]
 }
 
+func asciiIsTokenChar(c byte) bool {
+	return asciiIsAlpha(c) || asciiIsNumeric(c) || asciiIsSpecial(c)
+}
+
 func asciiIsAlpha(c byte) bool {
 	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+}
+
+func asciiIsNumeric(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
+func asciiIsSpecial(c byte) bool {
+	allowed := []byte("~#$%'*+-.^_`|~")
+	return bytes.IndexByte(allowed, c) != -1
 }
 
 // isValidUserAgentToObey verifies that the given user agent is valid to be matched against

@@ -170,11 +170,19 @@ var _ = Describe("Robots", func() {
 		EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey(""))
 		EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey("ツ"))
 
-		EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey("Foobot*"))
+		// EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey("Foobot*")) // Allowed by RFC 7231.
 		EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey(" Foobot "))
 		EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey("Foobot/2.1"))
 
 		EXPECT_FALSE(grobotstxt.IsValidUserAgentToObey("Foobot Bar"))
+	})
+
+	// A user-agent line can in fact contain a wider range of characters
+	// than the original spec referenced above, according to RFC7231.
+	// https://httpwg.org/specs/rfc7231.html#header.user-agent
+	It("should ID_VerifyValidUserAgentsToObey", func() {
+		EXPECT_TRUE(grobotstxt.IsValidUserAgentToObey("Foo12bot"))
+		EXPECT_TRUE(grobotstxt.IsValidUserAgentToObey("Foobot~Bar"))
 	})
 
 	// User-agent line values are case insensitive. See REP I-D section "The

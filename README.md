@@ -155,6 +155,7 @@ See [LICENSE](LICENSE) for more information.
 
 ## History
 
+- v1.0.2 (2022-03-16) Allow wider range of characters for user-agent.
 - v1.0.1 (2021-04-19) Updated modules. Switch from Travis CI to GitHub Actions.
 - v1.0.0 (2021-04-18) Tagged as stable.
 - v0.2.1 (2021-01-16) Expose more methods of RobotsMatcher as public. Thanks to [anatolym](https://github.com/anatolym)
