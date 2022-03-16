@@ -77,6 +77,13 @@ $ icanhasrobot ~/local/path/to/robots.txt YourBot https://example.com/url
 user-agent 'YourBot' with URI 'https://example.com/url': ALLOWED
 ```
 
+Additionally, one can pass multiple user-agent names to the tool, using comma-separated values, e.g.
+
+```bash
+$ icanhasrobot ~/local/path/to/robots.txt Googlebot,Googlebot-image https://example.com/url
+user-agent 'Googlebot,Googlebot-image' with URI 'https://example.com/url': ALLOWED
+```
+
 If `$GOBIN` is not included in your environment's `$PATH`, use the full path `~/go/bin/icanhasrobot` when invoking the executable.
 
 ### Example Code
@@ -155,7 +162,8 @@ See [LICENSE](LICENSE) for more information.
 
 ## History
 
-- v1.0.2 (2022-03-16) Allow wider range of characters for user-agent.
+- v1.0.3 (2022-03-16) Updates from upstream: Allow additional miss-spelling of 'disallow'. Additional tests. Make icanhasrobot tool return better exit codes. Make icanhasrobots work with multiple UAs.
+- v1.0.2 (2022-03-16) Bugfix: Allow wider range of characters for user-agent.
 - v1.0.1 (2021-04-19) Updated modules. Switch from Travis CI to GitHub Actions.
 - v1.0.0 (2021-04-18) Tagged as stable.
 - v0.2.1 (2021-01-16) Expose more methods of RobotsMatcher as public. Thanks to [anatolym](https://github.com/anatolym)

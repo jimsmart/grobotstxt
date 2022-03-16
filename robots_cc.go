@@ -339,6 +339,7 @@ func keyIsDisallow(key string) bool {
 		(AllowFrequentTypos && (startsWithIgnoreCase(key, "dissallow") ||
 			startsWithIgnoreCase(key, "dissalow") ||
 			startsWithIgnoreCase(key, "disalow") ||
+			startsWithIgnoreCase(key, "diaslow") ||
 			startsWithIgnoreCase(key, "diasllow") ||
 			startsWithIgnoreCase(key, "disallaw")))
 }

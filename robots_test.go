@@ -24,6 +24,8 @@
 package grobotstxt_test
 
 import (
+	"strings"
+
 	"github.com/jimsmart/grobotstxt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -35,6 +37,12 @@ var _ = Describe("Robots", func() {
 	IsUserAgentAllowed := func(robotstxt, userAgent, url string) bool {
 		matcher := grobotstxt.NewRobotsMatcher()
 		return matcher.AgentAllowed(robotstxt, userAgent, url)
+	}
+
+	AllowedByRobots := func(robotstxt, userAgents, url string) bool {
+		userAgentList := strings.Split(userAgents, ",")
+		matcher := grobotstxt.NewRobotsMatcher()
+		return matcher.AgentsAllowed(robotstxt, userAgentList, url)
 	}
 
 	EXPECT_TRUE := func(b bool) {
@@ -131,6 +139,56 @@ var _ = Describe("Robots", func() {
 		EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", url_foo))
 		EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "BarBot", url_foo))
 		EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "BazBot", url_foo))
+	})
+
+	// Group must not be closed by rules not explicitly defined in the REP I-D.
+	// See REP I-D section "Protocol Definition".
+	// https://tools.ietf.org/html/draft-koster-rep#section-2.1
+	It("should ID_LineSyntax_Groups_OtherRules", func() {
+		{
+			const robotstxt = "User-agent: BarBot\n" +
+				"Sitemap: https://foo.bar/sitemap\n" +
+				"User-agent: *\n" +
+				"Disallow: /\n"
+			const url = "http://foo.bar/"
+			EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", url))
+			EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "BarBot", url))
+		}
+		{
+			const robotstxt = "User-agent: FooBot\n" +
+				"Invalid-Unknown-Line: unknown\n" +
+				"User-agent: *\n" +
+				"Disallow: /\n"
+			const url = "http://foo.bar/"
+			EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "FooBot", url))
+			EXPECT_FALSE(IsUserAgentAllowed(robotstxt, "BarBot", url))
+		}
+	})
+
+	// Test based on the documentation at
+	// https://developers.google.com/search/reference/robots_txt#order-of-precedence-for-user-agents
+	// "Only one group is valid for a particular crawler"
+	// "The group followed is group 1. Only the most specific group is followed, all others are ignored"
+	It("should ID_Multiple_Useragents", func() {
+		const robotstxt = "user-agent: googlebot-news\n" +
+			"Disallow: /bar/\n" +
+			"\n" +
+			"user-agent: *\n" +
+			"Disallow: /baz/\n" +
+			"\n\n" +
+			"user-agent: googlebot\n" +
+			"Disallow: /foo/\n"
+
+		// const url_foo = "http://foo.bar/foo/"
+		const url_bar = "http://foo.bar/bar/"
+		const url_baz = "http://foo.bar/baz/"
+		const url_qux = "http://foo.bar/qux/"
+
+		// the first test currently fails
+		// EXPECT_TRUE(AllowedByRobots(robotstxt, "googlebot,googlebot-news", url_foo))
+		EXPECT_FALSE(AllowedByRobots(robotstxt, "googlebot,googlebot-news", url_bar))
+		EXPECT_TRUE(AllowedByRobots(robotstxt, "googlebot,googlebot-news", url_baz))
+		EXPECT_TRUE(AllowedByRobots(robotstxt, "googlebot,googlebot-news", url_qux))
 	})
 
 	// REP lines are case insensitive. See REP I-D section "Protocol Definition".
